@@ -1,0 +1,3 @@
+{
+  "extends": "@gityap/config/tsconfig.base.json"
+}
