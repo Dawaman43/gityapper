@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -74,7 +75,7 @@
 }
 
 @theme inline {
-  --font-sans: "Inter Variable", sans-serif;
+  --font-sans: "Instrument Sans", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -121,8 +122,25 @@
   }
   body {
     @apply font-sans bg-background text-foreground;
+    min-height: 100%;
   }
   html {
     @apply font-sans;
+    min-height: 100%;
+  }
+  #root {
+    min-height: 100%;
+  }
+  .font-display {
+    font-family: "Space Grotesk", "Instrument Sans", sans-serif;
+  }
+  button,
+  a,
+  [role="button"],
+  .cursor-pointer {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z'/%3E%3C/svg%3E")
+        3 3,
+      pointer;
   }
 }
