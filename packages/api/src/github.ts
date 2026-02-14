@@ -253,7 +253,7 @@ export function compareUsers(githubUser: GitHubUserData, telegramChannel: any) {
 			username: telegramChannel.username,
 			title: telegramChannel.title,
 			avatarUrl: telegramChannel.username
-				? `https://t.me/i/userpic/320/${telegramChannel.username}.jpg`
+				? `https://unavatar.io/telegram/${telegramChannel.username}`
 				: "",
 			participants: telegramChannel.participants_count,
 			posts: posts,
@@ -299,7 +299,7 @@ export function compareChannels(tg1: any, tg2: any) {
 			username: tg1.username,
 			title: tg1.title,
 			avatarUrl: tg1.username
-				? `https://t.me/i/userpic/320/${tg1.username}.jpg`
+				? `https://unavatar.io/telegram/${tg1.username}`
 				: "",
 			participants: tg1.participants_count,
 			posts: tg1Posts,
@@ -309,7 +309,7 @@ export function compareChannels(tg1: any, tg2: any) {
 			username: tg2.username,
 			title: tg2.title,
 			avatarUrl: tg2.username
-				? `https://t.me/i/userpic/320/${tg2.username}.jpg`
+				? `https://unavatar.io/telegram/${tg2.username}`
 				: "",
 			participants: tg2.participants_count,
 			posts: tg2Posts,

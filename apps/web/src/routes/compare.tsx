@@ -32,8 +32,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const compareSearchSchema = z.object({
-	github: z.string(),
-	telegram: z.string(),
+	github: z.string().catch(""),
+	telegram: z.string().catch(""),
 });
 
 export const Route = createFileRoute("/compare")({
@@ -56,11 +56,11 @@ function RouteComponent() {
 
 	const compareQuery = useQuery({
 		...trpc.compareUsers.queryOptions({
-			githubUsername: github,
-			telegramUsername: telegram,
+			githubUsername: github || "",
+			telegramUsername: telegram || "",
 			session,
 		}),
-		enabled: !!session,
+		enabled: !!session && !!github && !!telegram,
 	});
 
 	const recentQuery = useQuery({
@@ -181,6 +181,31 @@ function RouteComponent() {
         </text>
       </svg>`,
 		)}`;
+
+	if (!github || !telegram) {
+		return (
+			<div className="container mx-auto flex max-w-md flex-col items-center justify-center px-6 py-20 text-center">
+				<Card className="w-full border-border bg-card shadow-sm">
+					<CardHeader>
+						<CardTitle className="font-display text-2xl text-foreground">
+							Comparison Parameters Missing
+						</CardTitle>
+						<CardDescription className="text-muted-foreground">
+							Please enter both a GitHub username and a Telegram channel to see the comparison.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Button
+							className="w-full rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90 cursor-pointer"
+							onClick={() => navigate({ to: "/" })}
+						>
+							Go to Home
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
 	if (isLoading) {
 		return (

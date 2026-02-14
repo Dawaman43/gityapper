@@ -10,6 +10,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Heart } from "@phosphor-icons/react";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
@@ -50,9 +51,14 @@ function RootComponent() {
 				disableTransitionOnChange
 				storageKey="vite-ui-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
+				<div className="grid h-svh grid-rows-[auto_1fr_auto]">
 					<Header />
-					<Outlet />
+					<main className="overflow-auto pb-8">
+						<Outlet />
+					</main>
+					<footer className="py-6 text-center text-[10px] text-muted-foreground/60 tracking-wider font-medium uppercase">
+						made with <Heart weight="fill" className="inline w-3 h-3 text-red-500/70" /> with dawit
+					</footer>
 				</div>
 				<Toaster richColors />
 			</ThemeProvider>
