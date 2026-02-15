@@ -1,13 +1,10 @@
 import {
 	Circle,
 	MagnifyingGlass,
-	Megaphone,
-	Rocket,
-	ChatsCircle,
 } from "@phosphor-icons/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,42 +17,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { trpc, trpcClient } from "@/utils/trpc";
+import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
 });
-
-type LoginStep = "phone" | "code" | "password" | "loggedIn";
 
 function HomeComponent() {
 	const healthCheck = useQuery(trpc.healthCheck.queryOptions());
 	const leaderboardQuery = useQuery(trpc.leaderboard.queryOptions());
 	const navigate = useNavigate();
 
-	const [step, setStep] = useState<LoginStep>("phone");
-	const [phoneNumber, setPhoneNumber] = useState("");
-	const [phoneCode, setPhoneCode] = useState("");
-	const [phoneCodeHash, setPhoneCodeHash] = useState("");
-	const [session, setSession] = useState("");
-	const [deviceId, setDeviceId] = useState("");
-	const [password, setPassword] = useState("");
 	const [channelUsername, setChannelUsername] = useState("");
 	const [githubUsername, setGithubUsername] = useState("");
-	const showLogin = step !== "loggedIn";
 	const leaderboard = leaderboardQuery.data;
-	const ensureDeviceId = () => {
-		let savedDeviceId = localStorage.getItem("tg_device_id");
-		if (!savedDeviceId) {
-			const id =
-				typeof crypto !== "undefined" && "randomUUID" in crypto
-					? crypto.randomUUID()
-					: `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-			localStorage.setItem("tg_device_id", id);
-			savedDeviceId = id;
-		}
-		return savedDeviceId;
-	};
 
 	const fallbackAvatar = (value?: string) =>
 		`data:image/svg+xml;utf8,${encodeURIComponent(
@@ -66,69 +41,6 @@ function HomeComponent() {
 				</text>
 			</svg>`,
 		)}`;
-
-	useEffect(() => {
-		const savedDeviceId = ensureDeviceId();
-		setDeviceId(savedDeviceId);
-
-		const savedSession = localStorage.getItem("tg_session");
-		if (savedSession) {
-			setSession(savedSession);
-			setStep("loggedIn");
-			return;
-		}
-
-		trpcClient.getTelegramSession
-			.query({ deviceId: savedDeviceId })
-			.then((data) => {
-				if (data?.session) {
-					localStorage.setItem("tg_session", data.session);
-					setSession(data.session);
-					setStep("loggedIn");
-				}
-			})
-			.catch(() => {
-				// Ignore restore errors and keep login flow visible
-			});
-	}, []);
-
-	const sendCodeMutation = useMutation({
-		...trpc.telegramSendCode.mutationOptions(),
-		onSuccess: (data) => {
-			setPhoneCodeHash(data.phoneCodeHash);
-			setSession(data.session);
-			setStep("code");
-			toast.success("Code sent!");
-		},
-		onError: (error) => toast.error(error.message),
-	});
-
-	const signInMutation = useMutation({
-		...trpc.telegramSignIn.mutationOptions(),
-		onSuccess: (data) => {
-			setSession(data.session);
-			localStorage.setItem("tg_session", data.session);
-			let currentDeviceId = deviceId || ensureDeviceId();
-			if (!deviceId && currentDeviceId) {
-				setDeviceId(currentDeviceId);
-			}
-			if (currentDeviceId) {
-				trpcClient.saveTelegramSession.mutate({
-					deviceId: currentDeviceId,
-					session: data.session,
-				});
-			}
-			setStep("loggedIn");
-			toast.success("Logged in!");
-		},
-		onError: (error) => {
-			if (error.message.includes("Two-factor")) {
-				setStep("password");
-			} else {
-				toast.error(error.message);
-			}
-		},
-	});
 
 	const handleCompare = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -231,13 +143,6 @@ function HomeComponent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								{step !== "loggedIn" && (
-									<div className="mb-6 rounded-2xl border border-border bg-muted/50 px-4 py-3 text-muted-foreground">
-										<Megaphone weight="fill" className="mr-2 inline" />
-										Telegram login is optional when the server session is configured.
-									</div>
-								)}
-
 								<form onSubmit={handleCompare} className="space-y-4">
 									<div className="grid gap-4 md:grid-cols-2">
 										<div className="space-y-2">
@@ -283,73 +188,9 @@ function HomeComponent() {
 				<div className="container mx-auto w-full max-w-6xl px-6 py-16">
 					<div
 						className={`grid gap-8 ${
-							showLogin ? "lg:grid-cols-[0.8fr_1.2fr]" : "lg:grid-cols-1"
+							"lg:grid-cols-1"
 						}`}
 					>
-						{showLogin && (
-							<Card className="rounded-3xl border border-border bg-card shadow-sm">
-								<CardHeader>
-									<CardTitle className="font-display text-2xl text-foreground">
-										Telegram Login
-									</CardTitle>
-									<CardDescription className="text-muted-foreground">
-										Optional when server session is configured
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									{step === "phone" && (
-										<form
-											onSubmit={(e) => {
-												e.preventDefault();
-												sendCodeMutation.mutate({ phoneNumber });
-											}}
-											className="space-y-4"
-										>
-											<Input
-												placeholder="+1234567890"
-												value={phoneNumber}
-												onChange={(e) => setPhoneNumber(e.target.value)}
-												className="border-input bg-background text-foreground"
-											/>
-											<Button
-												type="submit"
-												className="w-full rounded-2xl bg-primary px-4 py-6 text-primary-foreground transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary/90"
-											>
-												Send Code
-											</Button>
-										</form>
-									)}
-									{step === "code" && (
-										<form
-											onSubmit={(e) => {
-												e.preventDefault();
-												signInMutation.mutate({
-													phoneNumber,
-													phoneCodeHash,
-													phoneCode,
-													session,
-												});
-											}}
-											className="space-y-4"
-										>
-											<Input
-												placeholder="12345"
-												value={phoneCode}
-												onChange={(e) => setPhoneCode(e.target.value)}
-												className="border-input bg-background text-foreground"
-											/>
-											<Button
-												type="submit"
-												className="w-full rounded-2xl bg-primary px-4 py-6 text-primary-foreground transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary/90"
-											>
-												Verify
-											</Button>
-										</form>
-									)}
-								</CardContent>
-							</Card>
-						)}
-
 						{leaderboard && (
 							<div className="grid gap-6 md:grid-cols-2">
 								<Card className="rounded-3xl border border-border bg-card shadow-sm">

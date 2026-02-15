@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gityapper-web.vercel.app/sitemap.xml
