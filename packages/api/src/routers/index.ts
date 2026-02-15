@@ -106,8 +106,8 @@ export const appRouter = router({
 				username: z.string().min(1).max(255),
 			}),
 		)
-		.query(async ({ input }) => {
-			return fetchGitHubUser(input.username);
+		.query(async ({ input, ctx }) => {
+			return fetchGitHubUser(input.username, { authToken: ctx.githubToken });
 		}),
 	githubSearch: publicProcedure
 		.input(
@@ -115,8 +115,8 @@ export const appRouter = router({
 				query: z.string().min(1).max(255),
 			}),
 		)
-		.query(async ({ input }) => {
-			return searchGitHubUsers(input.query);
+		.query(async ({ input, ctx }) => {
+			return searchGitHubUsers(input.query, { authToken: ctx.githubToken });
 		}),
 	compareUsers: publicProcedure
 		.input(
@@ -126,9 +126,9 @@ export const appRouter = router({
 				session: z.string().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const [githubUser, telegramChannel] = await Promise.all([
-				fetchGitHubUser(input.githubUsername),
+				fetchGitHubUser(input.githubUsername, { authToken: ctx.githubToken }),
 				fetchChannelInfo(input.telegramUsername, input.session),
 			]);
 			await recordComparison(githubUser, telegramChannel);

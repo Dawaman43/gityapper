@@ -20,15 +20,16 @@ export interface GitHubRepo {
 	commits_url: string;
 }
 
-function getGitHubHeaders(): Record<string, string> {
+function getGitHubHeaders(authToken?: string | null): Record<string, string> {
 	const headers: Record<string, string> = {
 		Accept: "application/vnd.github.v3+json",
 		"User-Agent": "Gityap-App",
 	};
 
-	// Add authorization token if available
-	if (env.GITHUB_TOKEN) {
-		headers.Authorization = `token ${env.GITHUB_TOKEN}`;
+	// Prefer per-user token if provided, otherwise fall back to server token
+	const token = authToken ?? env.GITHUB_TOKEN;
+	if (token) {
+		headers.Authorization = `token ${token}`;
 	}
 
 	return headers;
@@ -36,13 +37,15 @@ function getGitHubHeaders(): Record<string, string> {
 
 export async function fetchGitHubUser(
 	username: string,
+	options?: { authToken?: string | null },
 ): Promise<GitHubUserData> {
 	const cleanUsername = username.replace(/^@+/, "").trim();
+	const authToken = options?.authToken ?? null;
 
 	const response = await fetch(
 		`https://api.github.com/users/${cleanUsername}`,
 		{
-			headers: getGitHubHeaders(),
+			headers: getGitHubHeaders(authToken),
 		},
 	);
 
@@ -65,7 +68,10 @@ export async function fetchGitHubUser(
 	const userData = (await response.json()) as GitHubUserData;
 
 	// Fetch commit count from repos
-	const commitsCount = await fetchGitHubTotalCommits(cleanUsername);
+	const commitsCount = await fetchGitHubTotalCommits(cleanUsername, {
+		authToken,
+		createdAt: userData.created_at,
+	});
 
 	return {
 		...userData,
@@ -73,12 +79,26 @@ export async function fetchGitHubUser(
 	};
 }
 
-async function fetchGitHubTotalCommits(username: string): Promise<number> {
+async function fetchGitHubTotalCommits(
+	username: string,
+	options?: { authToken?: string | null; createdAt?: string | null },
+): Promise<number> {
 	try {
+		if (options?.authToken && options?.createdAt) {
+			const graphqlCount = await fetchGitHubCommitContributionsWithToken({
+				username,
+				createdAt: options.createdAt,
+				authToken: options.authToken,
+			});
+			if (typeof graphqlCount === "number") {
+				return graphqlCount;
+			}
+		}
+
 		// Use GitHub Search API to count ALL commits by author across all repos and branches
 		// This is more accurate than counting per-repo as it includes all branches
 		const headers = {
-			...getGitHubHeaders(),
+			...getGitHubHeaders(options?.authToken),
 			Accept: "application/vnd.github.cloak-preview+json", // Required for search commits
 		};
 
@@ -91,18 +111,21 @@ async function fetchGitHubTotalCommits(username: string): Promise<number> {
 
 		if (!searchResponse.ok) {
 			// Fallback to repo-by-repo counting if search fails
-			return fetchGitHubCommitsByRepo(username);
+			return fetchGitHubCommitsByRepo(username, options?.authToken);
 		}
 
 		const searchData = (await searchResponse.json()) as { total_count: number };
 		return searchData.total_count || 0;
 	} catch {
 		// Fallback to repo-by-repo counting
-		return fetchGitHubCommitsByRepo(username);
+		return fetchGitHubCommitsByRepo(username, options?.authToken);
 	}
 }
 
-async function fetchGitHubCommitsByRepo(username: string): Promise<number> {
+async function fetchGitHubCommitsByRepo(
+	username: string,
+	authToken?: string | null,
+): Promise<number> {
 	try {
 		// Get all repos with pagination
 		const allRepos: Array<{ name: string }> = [];
@@ -114,7 +137,7 @@ async function fetchGitHubCommitsByRepo(username: string): Promise<number> {
 			const reposResponse = await fetch(
 				`https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&sort=updated`,
 				{
-					headers: getGitHubHeaders(),
+					headers: getGitHubHeaders(authToken),
 				},
 			);
 
@@ -152,7 +175,7 @@ async function fetchGitHubCommitsByRepo(username: string): Promise<number> {
 						const commitsResponse = await fetch(
 							`https://api.github.com/repos/${username}/${repo.name}/commits?author=${username}&per_page=1`,
 							{
-								headers: getGitHubHeaders(),
+								headers: getGitHubHeaders(authToken),
 							},
 						);
 
@@ -188,13 +211,15 @@ async function fetchGitHubCommitsByRepo(username: string): Promise<number> {
 
 export async function searchGitHubUsers(
 	query: string,
+	options?: { authToken?: string | null },
 ): Promise<GitHubUserData[]> {
 	const cleanQuery = query.trim();
+	const authToken = options?.authToken ?? null;
 
 	const response = await fetch(
 		`https://api.github.com/search/users?q=${encodeURIComponent(cleanQuery)}&per_page=10`,
 		{
-			headers: getGitHubHeaders(),
+			headers: getGitHubHeaders(authToken),
 		},
 	);
 
@@ -213,7 +238,7 @@ export async function searchGitHubUsers(
 	const usersWithDetails = await Promise.all(
 		data.items.slice(0, 5).map(async (item) => {
 			try {
-				return await fetchGitHubUser(item.login);
+				return await fetchGitHubUser(item.login, { authToken });
 			} catch {
 				return null;
 			}
@@ -223,6 +248,68 @@ export async function searchGitHubUsers(
 	return usersWithDetails.filter(
 		(user): user is GitHubUserData => user !== null,
 	);
+}
+
+async function fetchGitHubCommitContributionsWithToken({
+	username,
+	createdAt,
+	authToken,
+}: {
+	username: string;
+	createdAt: string;
+	authToken: string;
+}): Promise<number | null> {
+	try {
+		const response = await fetch("https://api.github.com/graphql", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${authToken}`,
+				"Content-Type": "application/json",
+				"User-Agent": "Gityap-App",
+			},
+			body: JSON.stringify({
+				query: `
+          query($login: String!, $from: DateTime!, $to: DateTime!) {
+            user(login: $login) {
+              contributionsCollection(from: $from, to: $to) {
+                totalCommitContributions
+              }
+            }
+          }
+        `,
+				variables: {
+					login: username,
+					from: createdAt,
+					to: new Date().toISOString(),
+				},
+			}),
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		const payload = (await response.json()) as {
+			data?: {
+				user?: {
+					contributionsCollection?: {
+						totalCommitContributions?: number;
+					};
+				};
+			};
+			errors?: Array<{ message?: string }>;
+		};
+
+		if (payload.errors?.length) {
+			return null;
+		}
+
+		const count =
+			payload.data?.user?.contributionsCollection?.totalCommitContributions;
+		return typeof count === "number" ? count : null;
+	} catch {
+		return null;
+	}
 }
 
 export function compareUsers(githubUser: GitHubUserData, telegramChannel: any) {

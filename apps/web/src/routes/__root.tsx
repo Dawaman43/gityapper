@@ -8,10 +8,12 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Analytics } from "@vercel/analytics/react";
+import { useEffect } from "react";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import type { trpc } from "@/utils/trpc";
+import { env } from "@gityap/env/web";
 
 import "../index.css";
 
@@ -42,6 +44,46 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootComponent() {
+	useEffect(() => {
+		if (typeof window === "undefined") {
+			return;
+		}
+
+		const serverOrigin = new URL(env.VITE_SERVER_URL).origin;
+
+		const storeToken = (token: string) => {
+			localStorage.setItem("gh_token", token);
+			window.dispatchEvent(new Event("gityap:github-token"));
+		};
+
+		const handleMessage = (event: MessageEvent) => {
+			if (event.origin !== serverOrigin) {
+				return;
+			}
+			const data = event.data as { type?: string; token?: string };
+			if (data?.type === "github_oauth" && data.token) {
+				storeToken(data.token);
+			}
+		};
+
+		const handleUrlToken = () => {
+			const url = new URL(window.location.href);
+			const token = url.searchParams.get("github_token");
+			if (!token) {
+				return;
+			}
+			storeToken(token);
+			url.searchParams.delete("github_token");
+			window.history.replaceState({}, "", url.toString());
+		};
+
+		handleUrlToken();
+		window.addEventListener("message", handleMessage);
+		return () => {
+			window.removeEventListener("message", handleMessage);
+		};
+	}, []);
+
 	return (
 		<>
 			<HeadContent />

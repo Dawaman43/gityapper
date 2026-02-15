@@ -23,6 +23,13 @@ export const trpcClient = createTRPCClient<AppRouter>({
 	links: [
 		httpBatchLink({
 			url: `${env.VITE_SERVER_URL}/trpc`,
+			headers: () => {
+				if (typeof window === "undefined") {
+					return {};
+				}
+				const token = localStorage.getItem("gh_token");
+				return token ? { Authorization: `Bearer ${token}` } : {};
+			},
 		}),
 	],
 });

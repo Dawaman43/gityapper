@@ -1,7 +1,7 @@
 import { Circle, MagnifyingGlass } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/utils/trpc";
+import { env } from "@gityap/env/web";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
@@ -27,6 +28,7 @@ function HomeComponent() {
 
 	const [channelUsername, setChannelUsername] = useState("");
 	const [githubUsername, setGithubUsername] = useState("");
+	const [githubToken, setGithubToken] = useState<string | null>(null);
 	const leaderboard = leaderboardQuery.data;
 
 	const fallbackAvatar = (value?: string) =>
@@ -38,6 +40,25 @@ function HomeComponent() {
 				</text>
 			</svg>`,
 		)}`;
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		const syncToken = () => {
+			setGithubToken(localStorage.getItem("gh_token"));
+		};
+
+		syncToken();
+		window.addEventListener("gityap:github-token", syncToken as EventListener);
+		window.addEventListener("storage", syncToken);
+		return () => {
+			window.removeEventListener(
+				"gityap:github-token",
+				syncToken as EventListener,
+			);
+			window.removeEventListener("storage", syncToken);
+		};
+	}, []);
 
 	const handleCompare = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -153,6 +174,38 @@ function HomeComponent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
+								<div className="mb-6 rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+									<div className="font-medium text-foreground">
+										Private commits (optional)
+									</div>
+									<div className="mt-1">
+										Connect GitHub OAuth to include private contributions for your
+										own account. Public-only counts work without it.
+									</div>
+									<div className="mt-3">
+										{githubToken ? (
+											<Button type="button" variant="outline" size="sm" disabled>
+												Connected
+											</Button>
+										) : (
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() => {
+													if (typeof window === "undefined") return;
+													window.open(
+														`${env.VITE_SERVER_URL}/auth/github/start`,
+														"github_oauth",
+														"width=520,height=700",
+													);
+												}}
+											>
+												Connect GitHub (Optional)
+											</Button>
+										)}
+									</div>
+								</div>
 								<form onSubmit={handleCompare} className="space-y-4">
 									<div className="grid gap-4 md:grid-cols-2">
 										<div className="space-y-2">
