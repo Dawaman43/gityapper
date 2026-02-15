@@ -1,5 +1,5 @@
+import { Heart } from "@phosphor-icons/react";
 import type { QueryClient } from "@tanstack/react-query";
-
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
@@ -7,10 +7,10 @@ import {
 	Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Analytics } from "@vercel/analytics/react";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { Heart } from "@phosphor-icons/react";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
@@ -56,11 +56,14 @@ function RootComponent() {
 					<main className="overflow-auto pb-8">
 						<Outlet />
 					</main>
-					<footer className="py-6 text-center text-[10px] text-muted-foreground/60 tracking-wider font-medium uppercase">
-						made with <Heart weight="fill" className="inline w-3 h-3 text-red-500/70" /> with dawit
+					<footer className="py-6 text-center font-medium text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+						made with{" "}
+						<Heart weight="fill" className="inline h-3 w-3 text-red-500/70" />{" "}
+						with dawit
 					</footer>
 				</div>
 				<Toaster richColors />
+				<Analytics />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
 			<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />

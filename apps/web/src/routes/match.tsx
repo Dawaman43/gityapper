@@ -1,33 +1,29 @@
+import { env } from "@gityap/env/web";
 import {
-	createFileRoute,
-	Link,
-	useNavigate,
-} from "@tanstack/react-router";
-import { z } from "zod";
-import { trpc } from "@/utils/trpc";
+	ArrowLeft,
+	Copy,
+	GithubLogo,
+	Handshake,
+	Heart,
+	ShareNetwork,
+	TelegramLogo,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { saveAs } from "file-saver";
+import html2canvas from "html2canvas";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
-	CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-	GithubLogo,
-	TelegramLogo,
-	Heart,
-	ArrowLeft,
-	Copy,
-	ShareNetwork,
-	Handshake,
-} from "@phosphor-icons/react";
-import html2canvas from "html2canvas";
-import { saveAs } from "file-saver";
-import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { env } from "@gityap/env/web";
+import { trpc } from "@/utils/trpc";
 
 const matchSearchSchema = z.object({
 	telegram1: z.string().catch(""),
@@ -159,7 +155,9 @@ function RouteComponent() {
 			canvas.toBlob(async (blob) => {
 				if (!blob) {
 					setIsCapturing(false);
-					toast.error("Failed to generate image. Please try taking a screenshot!");
+					toast.error(
+						"Failed to generate image. Please try taking a screenshot!",
+					);
 					return;
 				}
 
@@ -185,7 +183,7 @@ function RouteComponent() {
 		const url = window.location.href;
 		const shareData = {
 			title: `Gityap Match: ${telegram1} + ${telegram2}`,
-			text: `Found the perfect cofounding channels on Gityap!`,
+			text: "Found the perfect cofounding channels on Gityap!",
 			url: url,
 		};
 
@@ -226,7 +224,7 @@ function RouteComponent() {
 					</CardHeader>
 					<CardContent>
 						<Button
-							className="w-full rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90 cursor-pointer"
+							className="w-full cursor-pointer rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90"
 							onClick={() => navigate({ to: "/" })}
 						>
 							Go to Home
@@ -264,7 +262,7 @@ function RouteComponent() {
 					<CardContent>
 						<Button
 							variant="outline"
-							className="w-full border-red-200 bg-white text-red-900 hover:bg-red-50 hover:text-red-950 cursor-pointer"
+							className="w-full cursor-pointer border-red-200 bg-white text-red-900 hover:bg-red-50 hover:text-red-950"
 							onClick={() => window.history.back()}
 						>
 							Go Back
@@ -310,7 +308,7 @@ function RouteComponent() {
 					<button
 						type="button"
 						onClick={() => window.history.back()}
-						className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
+						className="inline-flex cursor-pointer items-center gap-2 font-medium text-muted-foreground text-sm hover:text-foreground"
 					>
 						<ArrowLeft weight="bold" />
 						Back to previous
@@ -322,7 +320,7 @@ function RouteComponent() {
 							size="sm"
 							onClick={handleCopyImage}
 							disabled={isCapturing}
-							className="gap-2 rounded-xl border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer"
+							className="cursor-pointer gap-2 rounded-xl border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground"
 						>
 							{isCapturing ? (
 								<div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-foreground" />
@@ -335,7 +333,7 @@ function RouteComponent() {
 							variant="outline"
 							size="sm"
 							onClick={handleShare}
-							className="gap-2 rounded-xl border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer"
+							className="cursor-pointer gap-2 rounded-xl border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground"
 						>
 							<ShareNetwork weight="bold" />
 							Share
@@ -343,107 +341,119 @@ function RouteComponent() {
 					</div>
 				</div>
 
-				<div 
-					ref={captureRef} 
+				<div
+					ref={captureRef}
 					id="capture-container"
-					className="rounded-3xl p-8 shadow-xl border border-border bg-card text-foreground dark:shadow-none"
+					className="rounded-3xl border border-border bg-card p-8 text-foreground shadow-xl dark:shadow-none"
 				>
-					<div className="text-center mb-12">
-						<div className="inline-flex items-center justify-center p-3 bg-red-50 dark:bg-red-500/10 rounded-full mb-4">
-							<Heart weight="fill" className="w-8 h-8 text-[#ef4444]" />
-						</div> 
-						<h1 className="font-display text-4xl font-bold tracking-tight text-foreground">
+					<div className="mb-12 text-center">
+						<div className="mb-4 inline-flex items-center justify-center rounded-full bg-red-50 p-3 dark:bg-red-500/10">
+							<Heart weight="fill" className="h-8 w-8 text-[#ef4444]" />
+						</div>
+						<h1 className="font-bold font-display text-4xl text-foreground tracking-tight">
 							The best cofounder for <br />
-							<span className="text-muted-foreground text-3xl">@{tg1Data.username}</span> is...
+							<span className="text-3xl text-muted-foreground">
+								@{tg1Data.username}
+							</span>{" "}
+							is...
 						</h1>
 					</div>
 
 					<div className="relative">
 						{/* Connection Line */}
-						<div className="absolute top-1/2 left-0 w-full h-0.5 -translate-y-1/2 hidden md:block bg-border" />
-						
-						<div className="grid md:grid-cols-2 gap-12 relative z-10">
+						<div className="absolute top-1/2 left-0 hidden h-0.5 w-full -translate-y-1/2 bg-border md:block" />
+
+						<div className="relative z-10 grid gap-12 md:grid-cols-2">
 							{/* Telegram User 1 (Left) */}
 							<div className="flex flex-col items-center">
 								<div className="relative mb-6">
-									<div className="absolute inset-0 bg-[#e0f2fe] dark:bg-sky-500/20 rounded-3xl transform rotate-3" />
+									<div className="absolute inset-0 rotate-3 transform rounded-3xl bg-[#e0f2fe] dark:bg-sky-500/20" />
 									<img
 										src={tg1Data.avatarUrl || fallbackAvatar(tg1Data.username)}
 										alt={tg1Data.username}
 										data-fallback={fallbackAvatar(tg1Data.username)}
 										crossOrigin="anonymous"
 										referrerPolicy="no-referrer"
-										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-card bg-card"
+										className="relative h-32 w-32 rounded-2xl border-4 border-card bg-card object-cover shadow-lg"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tg1Data.username);
 										}}
 									/>
-									<div className="absolute -bottom-3 -right-3 bg-[#229ED9] text-white p-2 rounded-xl shadow-md">
-										<TelegramLogo weight="fill" className="w-5 h-5" />
+									<div className="absolute -right-3 -bottom-3 rounded-xl bg-[#229ED9] p-2 text-white shadow-md">
+										<TelegramLogo weight="fill" className="h-5 w-5" />
 									</div>
 								</div>
-								<h2 className="text-xl font-bold text-foreground">@{tg1Data.username}</h2>
-								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium border border-border">
+								<h2 className="font-bold text-foreground text-xl">
+									@{tg1Data.username}
+								</h2>
+								<div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 font-medium text-muted-foreground text-sm">
 									<span>Main Channel</span>
 								</div>
 							</div>
 
 							{/* Connection Badge (Mobile) */}
-							<div className="flex md:hidden justify-center -my-6 relative z-20">
-								<div className="bg-card p-2 rounded-full shadow-md border border-border">
-									<Handshake weight="fill" className="w-8 h-8 text-muted-foreground" />
+							<div className="relative z-20 -my-6 flex justify-center md:hidden">
+								<div className="rounded-full border border-border bg-card p-2 shadow-md">
+									<Handshake
+										weight="fill"
+										className="h-8 w-8 text-muted-foreground"
+									/>
 								</div>
 							</div>
 
 							{/* Telegram User (Right - The Match) */}
 							<div className="flex flex-col items-center">
 								<div className="relative mb-6">
-									<div className="absolute inset-0 bg-[#e0f2fe] dark:bg-sky-500/20 rounded-3xl transform -rotate-3" />
+									<div className="absolute inset-0 -rotate-3 transform rounded-3xl bg-[#e0f2fe] dark:bg-sky-500/20" />
 									<img
 										src={tg2Data.avatarUrl || fallbackAvatar(tg2Data.username)}
 										alt={tg2Data.username}
 										data-fallback={fallbackAvatar(tg2Data.username)}
 										crossOrigin="anonymous"
 										referrerPolicy="no-referrer"
-										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-card bg-card"
+										className="relative h-32 w-32 rounded-2xl border-4 border-card bg-card object-cover shadow-lg"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tg2Data.username);
 										}}
 									/>
-									<div className="absolute -bottom-3 -right-3 bg-[#229ED9] text-white p-2 rounded-xl shadow-md">
-										<TelegramLogo weight="fill" className="w-5 h-5" />
+									<div className="absolute -right-3 -bottom-3 rounded-xl bg-[#229ED9] p-2 text-white shadow-md">
+										<TelegramLogo weight="fill" className="h-5 w-5" />
 									</div>
 								</div>
-								<h2 className="text-xl font-bold text-foreground">@{tg2Data.username}</h2>
-								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium border border-green-500/20">
+								<h2 className="font-bold text-foreground text-xl">
+									@{tg2Data.username}
+								</h2>
+								<div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 font-medium text-green-600 text-sm dark:text-green-400">
 									<span>Cofounder Match</span>
 								</div>
 							</div>
 						</div>
 
 						{/* Center Badge (Desktop) */}
-						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center justify-center">
-							<div className="bg-card p-3 rounded-2xl shadow-lg border border-border">
-								<Handshake weight="fill" className="w-8 h-8 text-foreground" />
+						<div className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center md:flex">
+							<div className="rounded-2xl border border-border bg-card p-3 shadow-lg">
+								<Handshake weight="fill" className="h-8 w-8 text-foreground" />
 							</div>
 						</div>
 					</div>
-					<div className="mt-12 p-6 bg-muted/50 rounded-2xl border border-border text-center">
-						<p className="text-lg font-medium text-foreground">
-							{reason ? `"${reason}"` : `"Successful startups are built by a builder and a talker."`}
+					<div className="mt-12 rounded-2xl border border-border bg-muted/50 p-6 text-center">
+						<p className="font-medium text-foreground text-lg">
+							{reason
+								? `"${reason}"`
+								: `"Successful startups are built by a builder and a talker."`}
 						</p>
-						<div className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-							<div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
+						<div className="mt-2 flex items-center justify-center gap-2 text-muted-foreground text-sm">
+							<div className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
 							<span>98% Compatibility Score</span>
 						</div>
 					</div>
 
 					<div className="mt-10 rounded-2xl border border-border bg-card p-6">
 						<div className="mb-4 flex items-center justify-between">
-							<h3 className="text-lg font-bold text-foreground">
+							<h3 className="font-bold text-foreground text-lg">
 								Performance Snapshot
 							</h3>
-							<div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+							<div className="font-medium text-muted-foreground text-xs uppercase tracking-widest">
 								Last Check
 							</div>
 						</div>
@@ -477,32 +487,40 @@ function RouteComponent() {
 
 							return (
 								<div key={row.label} className="mb-5 last:mb-0">
-									<div className="mb-2 flex items-center justify-between text-sm font-semibold text-foreground">
+									<div className="mb-2 flex items-center justify-between font-semibold text-foreground text-sm">
 										<span>{row.label}</span>
-										<span className="text-xs text-muted-foreground">Max {formatNumber(max)}</span>
+										<span className="text-muted-foreground text-xs">
+											Max {formatNumber(max)}
+										</span>
 									</div>
 									<div className="grid gap-3 sm:grid-cols-2">
 										<div>
-											<div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+											<div className="mb-1 flex items-center justify-between text-muted-foreground text-xs">
 												<span>@{tg1Data.username}</span>
 												<span>{formatNumber(row.left)}</span>
 											</div>
 											<div className="h-2 w-full rounded-full bg-muted">
 												<div
 													className="h-2 rounded-full"
-													style={{ width: `${leftWidth}%`, backgroundColor: row.leftColor }}
+													style={{
+														width: `${leftWidth}%`,
+														backgroundColor: row.leftColor,
+													}}
 												/>
 											</div>
 										</div>
 										<div>
-											<div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+											<div className="mb-1 flex items-center justify-between text-muted-foreground text-xs">
 												<span>@{tg2Data.username}</span>
 												<span>{formatNumber(row.right)}</span>
 											</div>
 											<div className="h-2 w-full rounded-full bg-muted">
 												<div
 													className="h-2 rounded-full"
-													style={{ width: `${rightWidth}%`, backgroundColor: row.rightColor }}
+													style={{
+														width: `${rightWidth}%`,
+														backgroundColor: row.rightColor,
+													}}
 												/>
 											</div>
 										</div>
