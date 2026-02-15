@@ -59,6 +59,14 @@ function HomeComponent() {
 		};
 	}, []);
 
+	const handleRemoveGitHubConnection = () => {
+		if (typeof window === "undefined") return;
+		localStorage.removeItem("gh_token");
+		window.dispatchEvent(new Event("gityap:github-token"));
+		setGithubToken(null);
+		toast.success("GitHub connection removed.");
+	};
+
 	const handleCompare = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!githubUsername || !channelUsername) {
@@ -183,14 +191,25 @@ function HomeComponent() {
 									</div>
 									<div className="mt-3">
 										{githubToken ? (
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												disabled
-											>
-												Connected
-											</Button>
+											<div className="flex flex-wrap items-center gap-2">
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													disabled
+												>
+													Connected
+												</Button>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={handleRemoveGitHubConnection}
+													className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800"
+												>
+													Remove Connection
+												</Button>
+											</div>
 										) : (
 											<Button
 												type="button"

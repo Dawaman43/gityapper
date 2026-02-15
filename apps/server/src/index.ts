@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { createContext } from "@gityap/api/context";
 import { appRouter } from "@gityap/api/routers/index";
 import { env } from "@gityap/env/server";
@@ -5,10 +6,9 @@ import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import crypto from "node:crypto";
 
 const app = new Hono();
-const GITHUB_OAUTH_SCOPE = "read:user";
+const GITHUB_OAUTH_SCOPE = "read:user repo read:org";
 
 function buildOAuthState(secret: string) {
 	const payload = JSON.stringify({ ts: Date.now() });
