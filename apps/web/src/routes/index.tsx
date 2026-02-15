@@ -1,7 +1,4 @@
-import {
-	Circle,
-	MagnifyingGlass,
-} from "@phosphor-icons/react";
+import { Circle, MagnifyingGlass } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -56,7 +53,7 @@ function HomeComponent() {
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
-			<header className="border-b border-border">
+			<header className="border-border border-b">
 				<div className="container mx-auto flex w-full max-w-6xl flex-col px-6 py-10">
 					<div className="flex flex-wrap items-center justify-between gap-4">
 						<div className="flex items-center gap-3">
@@ -78,11 +75,11 @@ function HomeComponent() {
 								className={`${buttonVariants({
 									variant: "outline",
 									size: "sm",
-								})} rounded-full px-3 text-xs border-red-500/40 bg-red-500/10 text-red-600 hover:bg-red-500/15 hover:text-red-600 shadow-sm shadow-red-500/20`}
+								})} rounded-full border-red-500/40 bg-red-500/10 px-3 text-red-600 text-xs shadow-red-500/20 shadow-sm hover:bg-red-500/15 hover:text-red-600`}
 							>
 								Star on Stark
 							</a>
-							<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-sm">
+							<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-muted-foreground text-sm shadow-sm">
 								<Circle
 									weight="fill"
 									className={healthCheck.data ? "text-primary" : "text-muted"}
@@ -97,16 +94,16 @@ function HomeComponent() {
 					<div className="mt-10 space-y-10">
 						<div className="space-y-6">
 							<div className="space-y-4">
-								<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+								<span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-semibold text-muted-foreground text-xs uppercase tracking-[0.2em]">
 									Signal over noise
 								</span>
-								<h1 className="font-display text-4xl leading-tight text-foreground md:text-5xl">
+								<h1 className="font-display text-4xl text-foreground leading-tight md:text-5xl">
 									See who ships code and who just talks.
 								</h1>
 								<p className="max-w-3xl text-base text-muted-foreground md:text-lg">
 									Compare a GitHub user with a Telegram channel to get an
-									immediate read on creator behavior. No dashboards, just a clean
-									ratio and sharp insight.
+									immediate read on creator behavior. No dashboards, just a
+									clean ratio and sharp insight.
 								</p>
 							</div>
 
@@ -199,16 +196,12 @@ function HomeComponent() {
 
 			<main className="flex-1">
 				<div className="container mx-auto w-full max-w-6xl px-6 py-16">
-					<div
-						className={`grid gap-8 ${
-							"lg:grid-cols-1"
-						}`}
-					>
+					<div className={`grid gap-8 ${"lg:grid-cols-1"}`}>
 						{leaderboard && (
 							<div className="grid gap-6 md:grid-cols-2">
 								<Card className="rounded-3xl border border-border bg-card shadow-sm">
 									<CardHeader>
-										<CardTitle className="font-display text-xl text-foreground">
+										<CardTitle className="font-display text-foreground text-xl">
 											Top GitHub Shippers
 										</CardTitle>
 										<CardDescription className="text-muted-foreground">
@@ -231,11 +224,15 @@ function HomeComponent() {
 														{index + 1}
 													</div>
 													<img
-														src={entry.avatarUrl || fallbackAvatar(entry.username)}
+														src={
+															entry.avatarUrl || fallbackAvatar(entry.username)
+														}
 														alt={`GitHub avatar for ${entry.username}`}
-														className="h-9 w-9 rounded-full border border-border object-cover bg-card"
+														className="h-9 w-9 rounded-full border border-border bg-card object-cover"
 														onError={(event) => {
-															event.currentTarget.src = fallbackAvatar(entry.username);
+															event.currentTarget.src = fallbackAvatar(
+																entry.username,
+															);
 														}}
 													/>
 													<div>
@@ -254,7 +251,7 @@ function HomeComponent() {
 
 								<Card className="rounded-3xl border border-border bg-card shadow-sm">
 									<CardHeader>
-										<CardTitle className="font-display text-xl text-foreground">
+										<CardTitle className="font-display text-foreground text-xl">
 											Top Telegram Yappers
 										</CardTitle>
 										<CardDescription className="text-muted-foreground">
@@ -277,11 +274,15 @@ function HomeComponent() {
 														{index + 1}
 													</div>
 													<img
-														src={entry.avatarUrl || fallbackAvatar(entry.username)}
+														src={
+															entry.avatarUrl || fallbackAvatar(entry.username)
+														}
 														alt={`Telegram avatar for ${entry.username}`}
-														className="h-9 w-9 rounded-full border border-border object-cover bg-card"
+														className="h-9 w-9 rounded-full border border-border bg-card object-cover"
 														onError={(event) => {
-															event.currentTarget.src = fallbackAvatar(entry.username);
+															event.currentTarget.src = fallbackAvatar(
+																entry.username,
+															);
 														}}
 													/>
 													<div>

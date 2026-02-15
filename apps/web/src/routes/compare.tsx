@@ -1,36 +1,32 @@
+import { env } from "@gityap/env/web";
 import {
-	createFileRoute,
-	Link,
-	useNavigate,
-} from "@tanstack/react-router";
-import { z } from "zod";
-import { trpc, trpcClient } from "@/utils/trpc";
+	ArrowClockwise,
+	ArrowLeft,
+	Copy,
+	GitCommit,
+	GithubLogo,
+	PaperPlaneTilt,
+	ShareNetwork,
+	TelegramLogo,
+	Trophy,
+	Users,
+} from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { saveAs } from "file-saver";
+import html2canvas from "html2canvas";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
-	CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-	GithubLogo,
-	TelegramLogo,
-	Trophy,
-	GitCommit,
-	Users,
-	PaperPlaneTilt,
-	ArrowLeft,
-	ArrowClockwise,
-	Copy,
-	ShareNetwork,
-} from "@phosphor-icons/react";
-import html2canvas from "html2canvas";
-import { saveAs } from "file-saver";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import { env } from "@gityap/env/web";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 const compareSearchSchema = z.object({
 	github: z.string().catch(""),
@@ -82,7 +78,6 @@ function RouteComponent() {
 			recentQuery.refetch();
 		}
 	}, [data, recentQuery]);
-
 
 	const handleReload = () => {
 		compareQuery.refetch();
@@ -208,7 +203,7 @@ function RouteComponent() {
 		const url = window.location.href;
 		const shareData = {
 			title: `Gityap: ${github} vs ${telegram}`,
-			text: `Check out this comparison on Gityap!`,
+			text: "Check out this comparison on Gityap!",
 			url: url,
 		};
 
@@ -250,12 +245,13 @@ function RouteComponent() {
 							Comparison Parameters Missing
 						</CardTitle>
 						<CardDescription className="text-muted-foreground">
-							Please enter both a GitHub username and a Telegram channel to see the comparison.
+							Please enter both a GitHub username and a Telegram channel to see
+							the comparison.
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<Button
-							className="w-full rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90 cursor-pointer"
+							className="w-full cursor-pointer rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90"
 							onClick={() => navigate({ to: "/" })}
 						>
 							Go to Home
@@ -327,7 +323,7 @@ function RouteComponent() {
 				<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<Link
 						to="/"
-						className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+						className="inline-flex items-center gap-2 font-medium text-muted-foreground text-sm hover:text-foreground"
 					>
 						<ArrowLeft weight="bold" />
 						Back to search
@@ -380,14 +376,14 @@ function RouteComponent() {
 							<div className="h-24 bg-linear-to-br from-slate-900 to-slate-800 p-6 dark:from-slate-950 dark:to-slate-900">
 								<GithubLogo weight="fill" className="h-8 w-8 text-white/80" />
 							</div>
-							<CardContent className="relative px-6 pb-6 pt-0">
+							<CardContent className="relative px-6 pt-0 pb-6">
 								<div className="absolute -top-12 left-6">
 									<img
 										src={ghData.avatarUrl || fallbackAvatar(ghData.username)}
 										alt={ghData.username}
 										data-fallback={fallbackAvatar(ghData.username)}
 										referrerPolicy="no-referrer"
-										className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-sm bg-card"
+										className="h-24 w-24 rounded-2xl border-4 border-card bg-card object-cover shadow-sm"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(ghData.username);
 										}}
@@ -398,55 +394,63 @@ function RouteComponent() {
 										@{ghData.username}
 									</h2>
 									<div className="mt-6 space-y-4">
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
-												<GitCommit weight="bold" className="text-muted-foreground/60" />
-												<span className="text-sm font-medium">Commits</span>
+												<GitCommit
+													weight="bold"
+													className="text-muted-foreground/60"
+												/>
+												<span className="font-medium text-sm">Commits</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{ghData.commits.toLocaleString()}
 											</span>
 										</div>
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
-												<Users weight="bold" className="text-muted-foreground/60" />
-												<span className="text-sm font-medium">Followers</span>
+												<Users
+													weight="bold"
+													className="text-muted-foreground/60"
+												/>
+												<span className="font-medium text-sm">Followers</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{ghData.followers.toLocaleString()}
 											</span>
 										</div>
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
 												<Trophy weight="bold" className="text-yellow-500" />
-												<span className="text-sm font-medium">
+												<span className="font-medium text-sm">
 													Signal Score
 												</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{ghData.score.toLocaleString()}
 											</span>
 										</div>
 									</div>
-									<div className="mt-6 pt-6 border-t border-border">
-										<Button 
-											className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-lg shadow-primary/10 transition-all hover:shadow-primary/20"
+									<div className="mt-6 border-border border-t pt-6">
+										<Button
+											className="w-full cursor-pointer rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 hover:shadow-primary/20"
 											onClick={async () => {
-												const match = await trpcClient.matchUsers.query({ 
+												const match = await trpcClient.matchUsers.query({
 													telegramUsername: tgData.username,
-													excludeTelegramUsername: tgData.username, 
+													excludeTelegramUsername: tgData.username,
 												});
 												if (match.username) {
-													navigate({ 
-														to: "/match", 
-														search: { 
-															telegram1: tgData.username, 
+													navigate({
+														to: "/match",
+														search: {
+															telegram1: tgData.username,
 															telegram2: match.username,
-															reason: match.reason ?? undefined
-														} 
+															reason: match.reason ?? undefined,
+														},
 													});
 												} else {
-													toast.error("No other cofounding channel found in the system yet.");
+													toast.error(
+														"No other cofounding channel found in the system yet.",
+													);
 												}
 											}}
 										>
@@ -460,13 +464,13 @@ function RouteComponent() {
 
 						{/* VS / Result Card */}
 						<div className="flex flex-col items-center">
-							<div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-primary font-display text-xl font-bold text-primary-foreground shadow-lg shadow-primary/20">
+							<div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-primary font-bold font-display text-primary-foreground text-xl shadow-lg shadow-primary/20">
 								VS
 							</div>
 
 							<Card className="w-full flex-1 overflow-hidden rounded-3xl border border-border bg-card shadow-[0_20px_50px_rgba(15,23,42,0.1)] dark:shadow-none">
 								<CardHeader className="bg-muted/30 pb-8 text-center">
-									<div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+									<div className="font-semibold text-muted-foreground text-xs uppercase tracking-[0.2em]">
 										The Verdict
 									</div>
 									<CardTitle className="mt-2 font-display text-3xl text-foreground">
@@ -481,9 +485,9 @@ function RouteComponent() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="p-0">
-									<div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+									<div className="grid grid-cols-2 divide-x divide-border border-border border-t">
 										<div className="p-6 text-center">
-											<div className="text-xs uppercase tracking-wider text-muted-foreground">
+											<div className="text-muted-foreground text-xs uppercase tracking-wider">
 												Signal
 											</div>
 											<div className="mt-1 font-display text-2xl text-foreground">
@@ -491,7 +495,7 @@ function RouteComponent() {
 											</div>
 										</div>
 										<div className="p-6 text-center">
-											<div className="text-xs uppercase tracking-wider text-muted-foreground">
+											<div className="text-muted-foreground text-xs uppercase tracking-wider">
 												Noise
 											</div>
 											<div className="mt-1 font-display text-2xl text-foreground">
@@ -499,11 +503,11 @@ function RouteComponent() {
 											</div>
 										</div>
 									</div>
-									<div className="p-8 text-center bg-primary text-primary-foreground">
-										<div className="text-sm font-medium text-primary-foreground/70">
+									<div className="bg-primary p-8 text-center text-primary-foreground">
+										<div className="font-medium text-primary-foreground/70 text-sm">
 											Signal Ratio
 										</div>
-										<div className="mt-2 font-display text-4xl font-bold">
+										<div className="mt-2 font-bold font-display text-4xl">
 											{((ghData.score / (tgData.score || 1)) * 100).toFixed(0)}%
 										</div>
 									</div>
@@ -516,14 +520,14 @@ function RouteComponent() {
 							<div className="h-24 bg-linear-to-br from-[#229ED9] to-[#0088cc] p-6">
 								<TelegramLogo weight="fill" className="h-8 w-8 text-white/80" />
 							</div>
-							<CardContent className="relative px-6 pb-6 pt-0">
+							<CardContent className="relative px-6 pt-0 pb-6">
 								<div className="absolute -top-12 left-6">
 									<img
 										src={tgData.avatarUrl || fallbackAvatar(tgData.username)}
 										alt={tgData.username}
 										data-fallback={fallbackAvatar(tgData.username)}
 										referrerPolicy="no-referrer"
-										className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-sm bg-card"
+										className="h-24 w-24 rounded-2xl border-4 border-card bg-card object-cover shadow-sm"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tgData.username);
 										}}
@@ -534,33 +538,36 @@ function RouteComponent() {
 										@{tgData.username}
 									</h2>
 									<div className="mt-6 space-y-4">
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
 												<PaperPlaneTilt
 													weight="bold"
 													className="text-muted-foreground/60"
 												/>
-												<span className="text-sm font-medium">Posts</span>
+												<span className="font-medium text-sm">Posts</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{tgData.posts.toLocaleString()}
 											</span>
 										</div>
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
-												<Users weight="bold" className="text-muted-foreground/60" />
-												<span className="text-sm font-medium">Subscribers</span>
+												<Users
+													weight="bold"
+													className="text-muted-foreground/60"
+												/>
+												<span className="font-medium text-sm">Subscribers</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{tgData.participants?.toLocaleString() || "N/A"}
 											</span>
 										</div>
-										<div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+										<div className="flex items-center justify-between border-border border-b pb-3 last:border-0 last:pb-0">
 											<div className="flex items-center gap-2 text-muted-foreground">
 												<Trophy weight="bold" className="text-yellow-500" />
-												<span className="text-sm font-medium">Yap Score</span>
+												<span className="font-medium text-sm">Yap Score</span>
 											</div>
-											<span className="font-display text-lg text-foreground">
+											<span className="font-display text-foreground text-lg">
 												{tgData.score.toLocaleString()}
 											</span>
 										</div>
@@ -573,87 +580,133 @@ function RouteComponent() {
 			</div>
 
 			{/* Recently Compared Section */}
-			<div className="container mx-auto max-w-6xl px-6 py-12 border-t border-border">
+			<div className="container mx-auto max-w-6xl border-border border-t px-6 py-12">
 				<div className="mb-8">
-					<h3 className="font-display text-2xl font-bold text-foreground">Recently Compared</h3>
-					<p className="text-muted-foreground">History of builder vs yapper ratios</p>
+					<h3 className="font-bold font-display text-2xl text-foreground">
+						Recently Compared
+					</h3>
+					<p className="text-muted-foreground">
+						History of builder vs yapper ratios
+					</p>
 				</div>
-				
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 					{recentQuery.data?.map((item) => (
-						<Link 
+						<Link
 							key={item.id}
 							to={item.type === "user_vs_channel" ? "/compare" : "/match"}
-							search={item.type === "user_vs_channel" 
-								? { github: item.left.username, telegram: item.right.username }
-								: { telegram1: item.left.username, telegram2: item.right.username }
+							search={
+								item.type === "user_vs_channel"
+									? {
+											github: item.left.username,
+											telegram: item.right.username,
+										}
+									: {
+											telegram1: item.left.username,
+											telegram2: item.right.username,
+										}
 							}
 							className="group block"
 						>
-							<Card className="h-full overflow-hidden border border-border bg-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md group-hover:border-border/80">
+							<Card className="h-full overflow-hidden border border-border bg-card transition-all duration-300 group-hover:-translate-y-1 group-hover:border-border/80 group-hover:shadow-md">
 								<CardContent className="p-4">
 									<div className="flex flex-col gap-3">
 										<div className="flex items-center justify-between">
 											<div className="flex -space-x-3 overflow-hidden">
 												<div className="relative">
 													<img
-														src={item.left.avatarUrl || fallbackAvatar(item.left.username)}
+														src={
+															item.left.avatarUrl ||
+															fallbackAvatar(item.left.username)
+														}
 														alt={item.left.username}
 														data-fallback={fallbackAvatar(item.left.username)}
 														referrerPolicy="no-referrer"
 														className="inline-block h-10 w-10 rounded-full border-2 border-card object-cover ring-2 ring-muted"
-														onError={(e) => { e.currentTarget.src = fallbackAvatar(item.left.username); }}
+														onError={(e) => {
+															e.currentTarget.src = fallbackAvatar(
+																item.left.username,
+															);
+														}}
 													/>
-													<div className="absolute -bottom-1 -right-1 bg-card rounded-full p-0.5 shadow-xs">
+													<div className="absolute -right-1 -bottom-1 rounded-full bg-card p-0.5 shadow-xs">
 														{item.left.type === "github" ? (
-															<GithubLogo weight="fill" className="w-2.5 h-2.5 text-foreground" />
+															<GithubLogo
+																weight="fill"
+																className="h-2.5 w-2.5 text-foreground"
+															/>
 														) : (
-															<TelegramLogo weight="fill" className="w-2.5 h-2.5 text-[#229ED9]" />
+															<TelegramLogo
+																weight="fill"
+																className="h-2.5 w-2.5 text-[#229ED9]"
+															/>
 														)}
 													</div>
 												</div>
 												<div className="relative">
 													<img
-														src={item.right.avatarUrl || fallbackAvatar(item.right.username)}
+														src={
+															item.right.avatarUrl ||
+															fallbackAvatar(item.right.username)
+														}
 														alt={item.right.username}
 														data-fallback={fallbackAvatar(item.right.username)}
 														referrerPolicy="no-referrer"
 														className="inline-block h-10 w-10 rounded-full border-2 border-card object-cover ring-2 ring-muted"
-														onError={(e) => { e.currentTarget.src = fallbackAvatar(item.right.username); }}
+														onError={(e) => {
+															e.currentTarget.src = fallbackAvatar(
+																item.right.username,
+															);
+														}}
 													/>
-													<div className="absolute -bottom-1 -right-1 bg-card rounded-full p-0.5 shadow-xs">
-														<TelegramLogo weight="fill" className="w-2.5 h-2.5 text-[#229ED9]" />
+													<div className="absolute -right-1 -bottom-1 rounded-full bg-card p-0.5 shadow-xs">
+														<TelegramLogo
+															weight="fill"
+															className="h-2.5 w-2.5 text-[#229ED9]"
+														/>
 													</div>
 												</div>
 											</div>
-											<div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+											<div className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
 												{new Date(item.timestamp).toLocaleDateString()}
 											</div>
 										</div>
-										
+
 										<div className="space-y-1">
 											<div className="flex items-center justify-between text-sm">
-												<span className={`truncate font-medium ${item.winner === "left" ? "text-foreground" : "text-muted-foreground"}`}>
+												<span
+													className={`truncate font-medium ${item.winner === "left" ? "text-foreground" : "text-muted-foreground"}`}
+												>
 													@{item.left.username}
 												</span>
-												<span className="font-display font-bold text-foreground">
+												<span className="font-bold font-display text-foreground">
 													{item.leftScore}
 												</span>
 											</div>
 											<div className="flex items-center justify-between text-sm">
-												<span className={`truncate font-medium ${item.winner === "right" ? "text-foreground" : "text-muted-foreground"}`}>
+												<span
+													className={`truncate font-medium ${item.winner === "right" ? "text-foreground" : "text-muted-foreground"}`}
+												>
 													@{item.right.username}
 												</span>
-												<span className="font-display font-bold text-foreground">
+												<span className="font-bold font-display text-foreground">
 													{item.rightScore}
 												</span>
 											</div>
 										</div>
 
-										<div className={`mt-1 py-1 px-2 rounded-lg text-[10px] font-bold text-center uppercase tracking-widest ${
-											item.winner === "left" ? "bg-primary text-primary-foreground" : "bg-[#229ED9] text-white"
-										}`}>
-											{item.winner === "left" ? (item.left.type === "github" ? "Builder Wins" : "Yap Winner") : "Yap Winner"}
+										<div
+											className={`mt-1 rounded-lg px-2 py-1 text-center font-bold text-[10px] uppercase tracking-widest ${
+												item.winner === "left"
+													? "bg-primary text-primary-foreground"
+													: "bg-[#229ED9] text-white"
+											}`}
+										>
+											{item.winner === "left"
+												? item.left.type === "github"
+													? "Builder Wins"
+													: "Yap Winner"
+												: "Yap Winner"}
 										</div>
 									</div>
 								</CardContent>
@@ -661,7 +714,7 @@ function RouteComponent() {
 						</Link>
 					))}
 					{(!recentQuery.data || recentQuery.data.length === 0) && (
-						<div className="col-span-full py-12 text-center rounded-3xl border-2 border-dashed border-border text-muted-foreground">
+						<div className="col-span-full rounded-3xl border-2 border-border border-dashed py-12 text-center text-muted-foreground">
 							No recent comparisons yet. Start shipping vs yapping!
 						</div>
 					)}
