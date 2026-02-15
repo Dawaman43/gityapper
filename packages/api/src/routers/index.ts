@@ -123,7 +123,7 @@ export const appRouter = router({
 			z.object({
 				githubUsername: z.string().min(1).max(255),
 				telegramUsername: z.string().min(1).max(64),
-				session: z.string().min(1),
+				session: z.string().optional(),
 			}),
 		)
 		.query(async ({ input }) => {
@@ -139,7 +139,7 @@ export const appRouter = router({
 			z.object({
 				telegramUsername1: z.string().min(1).max(64),
 				telegramUsername2: z.string().min(1).max(64),
-				session: z.string().min(1),
+				session: z.string().optional(),
 			}),
 		)
 		.query(async ({ input }) => {

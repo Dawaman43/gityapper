@@ -52,38 +52,13 @@ function RouteComponent() {
 			? localStorage.getItem("tg_session") || ""
 			: "";
 
-	if (!session) {
-		return (
-			<div className="container mx-auto flex max-w-md flex-col items-center justify-center px-6 py-20 text-center">
-				<Card className="w-full border-border bg-card shadow-sm">
-					<CardHeader>
-						<CardTitle className="font-display text-2xl text-foreground">
-							Login Required
-						</CardTitle>
-						<CardDescription className="text-muted-foreground">
-							You need to be logged in to Telegram to see matches.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button
-							className="w-full rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90 cursor-pointer"
-							onClick={() => navigate({ to: "/" })}
-						>
-							Go to Login
-						</Button>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
-
 	const compareQuery = useQuery({
 		...trpc.compareChannels.queryOptions({
 			telegramUsername1: telegram1 || "",
 			telegramUsername2: telegram2 || "",
 			session,
 		}),
-		enabled: !!session && !!telegram1 && !!telegram2,
+		enabled: !!telegram1 && !!telegram2,
 	});
 
 	const isLoading = compareQuery.isLoading;

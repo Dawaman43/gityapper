@@ -162,18 +162,19 @@ export async function signInWithCode(params: {
 
 export async function fetchChannelInfo(
 	channelUsername: string,
-	sessionValue: string,
+	sessionValue?: string,
 ): Promise<ChannelInfo> {
 	const username = normalizeUsername(channelUsername);
 	if (!username) {
 		throw new Error("username is required");
 	}
 
-	if (!sessionValue) {
+	const session = sessionValue || env.TG_SESSION || "";
+	if (!session) {
 		throw new Error("session is required for channel info requests");
 	}
 
-	const client = createClient(sessionValue);
+	const client = createClient(session);
 
 	await client.connect();
 

@@ -136,10 +136,6 @@ function HomeComponent() {
 			toast.error("Enter both usernames");
 			return;
 		}
-		if (!session) {
-			toast.error("Login to Telegram first");
-			return;
-		}
 		navigate({
 			to: "/compare",
 			search: { github: githubUsername, telegram: channelUsername },
@@ -238,7 +234,7 @@ function HomeComponent() {
 								{step !== "loggedIn" && (
 									<div className="mb-6 rounded-2xl border border-border bg-muted/50 px-4 py-3 text-muted-foreground">
 										<Megaphone weight="fill" className="mr-2 inline" />
-										Sign in to Telegram before running comparisons.
+										Telegram login is optional when the server session is configured.
 									</div>
 								)}
 
@@ -271,7 +267,6 @@ function HomeComponent() {
 									</div>
 									<Button
 										type="submit"
-										disabled={!session}
 										className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-6 text-primary-foreground transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary/90 disabled:opacity-60"
 									>
 										<MagnifyingGlass weight="fill" />
@@ -298,7 +293,7 @@ function HomeComponent() {
 										Telegram Login
 									</CardTitle>
 									<CardDescription className="text-muted-foreground">
-										Required to fetch Telegram channel data
+										Optional when server session is configured
 									</CardDescription>
 								</CardHeader>
 								<CardContent>

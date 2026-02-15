@@ -61,12 +61,12 @@ function RouteComponent() {
 			telegramUsername: telegram || "",
 			session,
 		}),
-		enabled: !!session && !!github && !!telegram,
+		enabled: !!github && !!telegram,
 	});
 
 	const recentQuery = useQuery({
 		...trpc.recentComparisons.queryOptions(),
-		enabled: !!session,
+		enabled: true,
 	});
 
 	const isLoading = compareQuery.isLoading;
@@ -225,31 +225,6 @@ function RouteComponent() {
 			toast.success("Link copied to clipboard!");
 		}
 	};
-
-	if (!session) {
-		return (
-			<div className="container mx-auto flex max-w-md flex-col items-center justify-center px-6 py-20 text-center">
-				<Card className="w-full border-border bg-card shadow-sm">
-					<CardHeader>
-						<CardTitle className="font-display text-2xl text-foreground">
-							Login Required
-						</CardTitle>
-						<CardDescription className="text-muted-foreground">
-							You need to be logged in to Telegram to run comparisons.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button
-							className="w-full rounded-2xl bg-primary py-6 text-primary-foreground hover:bg-primary/90"
-							onClick={() => navigate({ to: "/" })}
-						>
-							Go to Login
-						</Button>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
 
 	const fallbackAvatar = (value?: string) =>
 		`data:image/svg+xml;utf8,${encodeURIComponent(
