@@ -16,6 +16,7 @@ export const githubUsers = pgTable("github_users", {
 	name: text("name"),
 	bio: text("bio"),
 	publicRepos: integer("public_repos"),
+	commitsCount: integer("commits_count"),
 	followers: integer("followers"),
 	following: integer("following"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -44,8 +45,22 @@ export const comparisons = pgTable("comparisons", {
 	telegramChannelId: integer("telegram_channel_id").references(
 		() => telegramChannels.id,
 	),
+	type: varchar("type", { length: 32 }),
+	left: jsonb("left"),
+	right: jsonb("right"),
+	leftScore: integer("left_score"),
+	rightScore: integer("right_score"),
+	winner: varchar("winner", { length: 16 }),
 	notes: text("notes"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const telegramSessions = pgTable("telegram_sessions", {
+	id: serial("id").primaryKey(),
+	deviceId: varchar("device_id", { length: 255 }).notNull().unique(),
+	session: text("session").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type GithubUser = typeof githubUsers.$inferSelect;
@@ -54,3 +69,5 @@ export type TelegramChannel = typeof telegramChannels.$inferSelect;
 export type NewTelegramChannel = typeof telegramChannels.$inferInsert;
 export type Comparison = typeof comparisons.$inferSelect;
 export type NewComparison = typeof comparisons.$inferInsert;
+export type TelegramSession = typeof telegramSessions.$inferSelect;
+export type NewTelegramSession = typeof telegramSessions.$inferInsert;

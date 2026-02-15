@@ -118,6 +118,7 @@
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
         "dotenv": "catalog:",
+        "drizzle-orm": "^0.45.1",
         "telegram": "^2.26.0",
         "zod": "catalog:",
       },

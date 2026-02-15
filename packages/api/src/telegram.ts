@@ -4,6 +4,7 @@ import { computeCheck } from "telegram/Password";
 import { StringSession } from "telegram/sessions";
 
 export type ChannelInfo = {
+	telegram_id: string;
 	title: string;
 	post_count: number;
 	username: string;
@@ -211,6 +212,7 @@ export async function fetchChannelInfo(
 		}
 
 		return {
+			telegram_id: String((channel as any).id ?? ""),
 			title: channel.title ?? username,
 			post_count: postCount,
 			username: channel.username ?? username,

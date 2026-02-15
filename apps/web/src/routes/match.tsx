@@ -27,6 +27,7 @@ import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { env } from "@gityap/env/web";
 
 const matchSearchSchema = z.object({
 	telegram1: z.string().catch(""),
@@ -94,18 +95,91 @@ function RouteComponent() {
 		setIsCapturing(true);
 
 		try {
-			const canvas = await html2canvas(captureRef.current, {
+			const exportRoot = document.createElement("div");
+			exportRoot.id = "export-root";
+			exportRoot.style.position = "fixed";
+			exportRoot.style.left = "-10000px";
+			exportRoot.style.top = "0";
+			exportRoot.style.width = "1200px";
+			exportRoot.style.padding = "32px";
+			exportRoot.style.background = "#ffffff";
+			exportRoot.style.color = "#0f172a";
+			exportRoot.style.fontFamily = "Inter, Arial, sans-serif";
+			exportRoot.style.boxSizing = "border-box";
+			exportRoot.style.display = "block";
+			exportRoot.style.setProperty("all", "initial");
+			exportRoot.style.position = "fixed";
+			exportRoot.style.left = "-10000px";
+			exportRoot.style.top = "0";
+			exportRoot.style.width = "1200px";
+			exportRoot.style.padding = "32px";
+			exportRoot.style.background = "#ffffff";
+			exportRoot.style.color = "#0f172a";
+			exportRoot.style.fontFamily = "Inter, Arial, sans-serif";
+			exportRoot.style.boxSizing = "border-box";
+			exportRoot.style.display = "block";
+
+			const exportStyle = document.createElement("style");
+			exportStyle.textContent = `
+				#export-root, #export-root * {
+					box-sizing: border-box !important;
+					border-color: #e2e8f0 !important;
+					color: #0f172a !important;
+					background-color: transparent !important;
+					box-shadow: none !important;
+					outline: none !important;
+				}
+				#export-root {
+					background-color: #ffffff !important;
+					color: #0f172a !important;
+				}
+			`;
+			exportRoot.appendChild(exportStyle);
+
+			const tg1Avatar =
+				proxyImageUrl(tg1Data.avatarUrl) || fallbackAvatar(tg1Data.username);
+			const tg2Avatar =
+				proxyImageUrl(tg2Data.avatarUrl) || fallbackAvatar(tg2Data.username);
+
+			exportRoot.innerHTML = `
+				<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;padding:28px;">
+					<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+						<div style="font-size:20px;font-weight:700;">Gityap Match</div>
+						<div style="font-size:12px;color:#64748b;">${new Date().toLocaleDateString()}</div>
+					</div>
+					<div style="text-align:center;margin-bottom:20px;">
+						<div style="font-size:18px;font-weight:700;">The best cofounder for @${tg1Data.username} is...</div>
+					</div>
+					<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:24px;align-items:center;">
+						<div style="text-align:center;">
+							<img src="${tg1Avatar}" crossorigin="anonymous" style="width:96px;height:96px;border-radius:20px;border:2px solid #e2e8f0;margin-bottom:10px;" />
+							<div style="font-weight:700;">@${tg1Data.username}</div>
+							<div style="font-size:12px;color:#64748b;">Main Channel</div>
+						</div>
+						<div style="text-align:center;">
+							<div style="width:56px;height:56px;border-radius:16px;background:#0f172a;color:#f8fafc;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto;">&amp;</div>
+						</div>
+						<div style="text-align:center;">
+							<img src="${tg2Avatar}" crossorigin="anonymous" style="width:96px;height:96px;border-radius:20px;border:2px solid #e2e8f0;margin-bottom:10px;" />
+							<div style="font-weight:700;">@${tg2Data.username}</div>
+							<div style="font-size:12px;color:#64748b;">Cofounder Match</div>
+						</div>
+					</div>
+					<div style="margin-top:22px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:12px;text-align:center;font-size:14px;color:#334155;">
+						${reason ? `"${reason}"` : `"Successful startups are built by a builder and a talker."`}
+					</div>
+				</div>
+			`;
+
+			document.body.appendChild(exportRoot);
+			const canvas = await html2canvas(exportRoot, {
 				useCORS: true,
+				allowTaint: true,
 				scale: 2,
 				backgroundColor: "#ffffff",
 				logging: false,
-				onclone: (clonedDoc) => {
-					const el = clonedDoc.getElementById("capture-container");
-					if (el) {
-						el.style.boxShadow = "none";
-					}
-				}
 			});
+			exportRoot.remove();
 
 			canvas.toBlob(async (blob) => {
 				if (!blob) {
@@ -242,24 +316,32 @@ function RouteComponent() {
 	}
 
 	const { telegram1: tg1Data, telegram2: tg2Data } = data;
+	const formatNumber = (value?: number) =>
+		typeof value === "number" ? value.toLocaleString() : "N/A";
+	const proxyImageUrl = (url?: string) => {
+		if (!url) return "";
+		const base = env.VITE_SERVER_URL?.replace(/\/$/, "") ?? "";
+		return `${base}/image-proxy?url=${encodeURIComponent(url)}`;
+	};
+	const maxValue = (...values: Array<number | undefined>) => {
+		const nums = values.filter((v): v is number => typeof v === "number");
+		return nums.length > 0 ? Math.max(...nums) : 1;
+	};
 
 	return (
 		<div className="min-h-screen bg-background pb-20">
 			<div className="container mx-auto max-w-4xl px-6 py-10">
 				<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-					<Link
-						to="/compare"
-						search={{ github: "", telegram: telegram1 }}
+					<button
+						type="button"
+						onClick={() => window.history.back()}
 						className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
 					>
 						<ArrowLeft weight="bold" />
-						Back to comparison
-					</Link>
+						Back to previous
+					</button>
 
 					<div className="flex items-center gap-2">
-						<div className="text-[10px] text-muted-foreground mr-2 hidden lg:block italic">
-							* Reason is stored in URL for sharing
-						</div>
 						<Button
 							variant="outline"
 							size="sm"
@@ -289,37 +371,34 @@ function RouteComponent() {
 				<div 
 					ref={captureRef} 
 					id="capture-container"
-					className="rounded-3xl p-8 shadow-xl border"
-					style={{
-						backgroundColor: "#ffffff",
-						borderColor: "#f1f5f9",
-						color: "#0f172a"
-					}}
+					className="rounded-3xl p-8 shadow-xl border border-border bg-card text-foreground dark:shadow-none"
 				>
 					<div className="text-center mb-12">
-						<div className="inline-flex items-center justify-center p-3 bg-red-50 rounded-full mb-4">
+						<div className="inline-flex items-center justify-center p-3 bg-red-50 dark:bg-red-500/10 rounded-full mb-4">
 							<Heart weight="fill" className="w-8 h-8 text-[#ef4444]" />
 						</div> 
-						<h1 className="font-display text-4xl font-bold tracking-tight" style={{ color: "#0f172a" }}>
+						<h1 className="font-display text-4xl font-bold tracking-tight text-foreground">
 							The best cofounder for <br />
-							<span style={{ color: "#64748b" }}>@{tg1Data.username}</span> is...
+							<span className="text-muted-foreground text-3xl">@{tg1Data.username}</span> is...
 						</h1>
 					</div>
 
 					<div className="relative">
 						{/* Connection Line */}
-						<div className="absolute top-1/2 left-0 w-full h-0.5 -translate-y-1/2 hidden md:block" style={{ backgroundColor: "#f1f5f9" }} />
+						<div className="absolute top-1/2 left-0 w-full h-0.5 -translate-y-1/2 hidden md:block bg-border" />
 						
 						<div className="grid md:grid-cols-2 gap-12 relative z-10">
 							{/* Telegram User 1 (Left) */}
 							<div className="flex flex-col items-center">
 								<div className="relative mb-6">
-									<div className="absolute inset-0 bg-[#e0f2fe] rounded-3xl transform rotate-3" />
+									<div className="absolute inset-0 bg-[#e0f2fe] dark:bg-sky-500/20 rounded-3xl transform rotate-3" />
 									<img
 										src={tg1Data.avatarUrl || fallbackAvatar(tg1Data.username)}
 										alt={tg1Data.username}
+										data-fallback={fallbackAvatar(tg1Data.username)}
 										crossOrigin="anonymous"
-										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-white bg-white"
+										referrerPolicy="no-referrer"
+										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-card bg-card"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tg1Data.username);
 										}}
@@ -328,28 +407,30 @@ function RouteComponent() {
 										<TelegramLogo weight="fill" className="w-5 h-5" />
 									</div>
 								</div>
-								<h2 className="text-xl font-bold" style={{ color: "#0f172a" }}>@{tg1Data.username}</h2>
-								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f5f9] text-[#475569] text-sm font-medium border border-[#e2e8f0]">
+								<h2 className="text-xl font-bold text-foreground">@{tg1Data.username}</h2>
+								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium border border-border">
 									<span>Main Channel</span>
 								</div>
 							</div>
 
 							{/* Connection Badge (Mobile) */}
 							<div className="flex md:hidden justify-center -my-6 relative z-20">
-								<div className="bg-white p-2 rounded-full shadow-md border border-[#f1f5f9]">
-									<Handshake weight="fill" className="w-8 h-8 text-[#94a3b8]" />
+								<div className="bg-card p-2 rounded-full shadow-md border border-border">
+									<Handshake weight="fill" className="w-8 h-8 text-muted-foreground" />
 								</div>
 							</div>
 
 							{/* Telegram User (Right - The Match) */}
 							<div className="flex flex-col items-center">
 								<div className="relative mb-6">
-									<div className="absolute inset-0 bg-[#e0f2fe] rounded-3xl transform -rotate-3" />
+									<div className="absolute inset-0 bg-[#e0f2fe] dark:bg-sky-500/20 rounded-3xl transform -rotate-3" />
 									<img
 										src={tg2Data.avatarUrl || fallbackAvatar(tg2Data.username)}
 										alt={tg2Data.username}
+										data-fallback={fallbackAvatar(tg2Data.username)}
 										crossOrigin="anonymous"
-										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-white bg-white"
+										referrerPolicy="no-referrer"
+										className="relative w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-card bg-card"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tg2Data.username);
 										}}
@@ -358,8 +439,8 @@ function RouteComponent() {
 										<TelegramLogo weight="fill" className="w-5 h-5" />
 									</div>
 								</div>
-								<h2 className="text-xl font-bold" style={{ color: "#0f172a" }}>@{tg2Data.username}</h2>
-								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dcfce7] text-[#166534] text-sm font-medium border border-[#bbf7d0]">
+								<h2 className="text-xl font-bold text-foreground">@{tg2Data.username}</h2>
+								<div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium border border-green-500/20">
 									<span>Cofounder Match</span>
 								</div>
 							</div>
@@ -367,19 +448,93 @@ function RouteComponent() {
 
 						{/* Center Badge (Desktop) */}
 						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center justify-center">
-							<div className="bg-white p-3 rounded-2xl shadow-lg border border-[#f1f5f9]">
-								<Handshake weight="fill" className="w-8 h-8 text-[#0f172a]" />
+							<div className="bg-card p-3 rounded-2xl shadow-lg border border-border">
+								<Handshake weight="fill" className="w-8 h-8 text-foreground" />
 							</div>
 						</div>
 					</div>
-					<div className="mt-12 p-6 bg-[#f8fafc] rounded-2xl border border-[#f1f5f9] text-center">
-						<p className="text-lg font-medium" style={{ color: "#334155" }}>
+					<div className="mt-12 p-6 bg-muted/50 rounded-2xl border border-border text-center">
+						<p className="text-lg font-medium text-foreground">
 							{reason ? `"${reason}"` : `"Successful startups are built by a builder and a talker."`}
 						</p>
-						<div className="mt-2 flex items-center justify-center gap-2 text-sm text-[#64748b]">
+						<div className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
 							<div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
 							<span>98% Compatibility Score</span>
 						</div>
+					</div>
+
+					<div className="mt-10 rounded-2xl border border-border bg-card p-6">
+						<div className="mb-4 flex items-center justify-between">
+							<h3 className="text-lg font-bold text-foreground">
+								Performance Snapshot
+							</h3>
+							<div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+								Last Check
+							</div>
+						</div>
+
+						{[
+							{
+								label: "Yap Score",
+								left: tg1Data.score,
+								right: tg2Data.score,
+								leftColor: "#0ea5e9",
+								rightColor: "#22c55e",
+							},
+							{
+								label: "Posts",
+								left: tg1Data.posts,
+								right: tg2Data.posts,
+								leftColor: "#6366f1",
+								rightColor: "#f97316",
+							},
+							{
+								label: "Subscribers",
+								left: tg1Data.participants,
+								right: tg2Data.participants,
+								leftColor: "#0f172a",
+								rightColor: "#64748b",
+							},
+						].map((row) => {
+							const max = maxValue(row.left, row.right);
+							const leftWidth = Math.round(((row.left ?? 0) / max) * 100);
+							const rightWidth = Math.round(((row.right ?? 0) / max) * 100);
+
+							return (
+								<div key={row.label} className="mb-5 last:mb-0">
+									<div className="mb-2 flex items-center justify-between text-sm font-semibold text-foreground">
+										<span>{row.label}</span>
+										<span className="text-xs text-muted-foreground">Max {formatNumber(max)}</span>
+									</div>
+									<div className="grid gap-3 sm:grid-cols-2">
+										<div>
+											<div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+												<span>@{tg1Data.username}</span>
+												<span>{formatNumber(row.left)}</span>
+											</div>
+											<div className="h-2 w-full rounded-full bg-muted">
+												<div
+													className="h-2 rounded-full"
+													style={{ width: `${leftWidth}%`, backgroundColor: row.leftColor }}
+												/>
+											</div>
+										</div>
+										<div>
+											<div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+												<span>@{tg2Data.username}</span>
+												<span>{formatNumber(row.right)}</span>
+											</div>
+											<div className="h-2 w-full rounded-full bg-muted">
+												<div
+													className="h-2 rounded-full"
+													style={{ width: `${rightWidth}%`, backgroundColor: row.rightColor }}
+												/>
+											</div>
+										</div>
+									</div>
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			</div>

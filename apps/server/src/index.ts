@@ -33,6 +33,7 @@ app.get("/image-proxy", async (c) => {
 
 	const allowedHosts = new Set([
 		"t.me",
+		"unavatar.io",
 		"avatars.githubusercontent.com",
 		"github.com",
 	]);

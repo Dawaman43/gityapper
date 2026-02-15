@@ -12,6 +12,8 @@ import { publicProcedure, router } from "../index";
 import { fetchChannelInfo, sendLoginCode, signInWithCode } from "../telegram";
 import { calculateTelegramScore } from "../github";
 import { compareChannels } from "../github";
+import { db, telegramSessions } from "@gityap/db";
+import { eq } from "drizzle-orm";
 
 export const appRouter = router({
 	healthCheck: publicProcedure.query(() => {
@@ -44,6 +46,46 @@ export const appRouter = router({
 				session: input.session,
 				password: input.password ?? null,
 			});
+		}),
+	saveTelegramSession: publicProcedure
+		.input(
+			z.object({
+				deviceId: z.string().min(1).max(255),
+				session: z.string().min(1),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			await db
+				.insert(telegramSessions)
+				.values({
+					deviceId: input.deviceId,
+					session: input.session,
+					updatedAt: new Date(),
+				})
+				.onConflictDoUpdate({
+					target: telegramSessions.deviceId,
+					set: {
+						session: input.session,
+						updatedAt: new Date(),
+					},
+				});
+
+			return { ok: true };
+		}),
+	getTelegramSession: publicProcedure
+		.input(
+			z.object({
+				deviceId: z.string().min(1).max(255),
+			}),
+		)
+		.query(async ({ input }) => {
+			const rows = await db
+				.select()
+				.from(telegramSessions)
+				.where(eq(telegramSessions.deviceId, input.deviceId))
+				.limit(1);
+			const session = rows[0]?.session ?? null;
+			return { session };
 		}),
 	telegramChannelInfo: publicProcedure
 		.input(
@@ -89,7 +131,7 @@ export const appRouter = router({
 				fetchGitHubUser(input.githubUsername),
 				fetchChannelInfo(input.telegramUsername, input.session),
 			]);
-			recordComparison(githubUser, telegramChannel);
+			await recordComparison(githubUser, telegramChannel);
 			return compareUsers(githubUser, telegramChannel);
 		}),
 	compareChannels: publicProcedure
@@ -111,7 +153,7 @@ export const appRouter = router({
 			const tg1Score = calculateTelegramScore(tg1);
 			const tg2Score = calculateTelegramScore(tg2);
 
-			recordHistory({
+			await recordHistory({
 				type: "channel_vs_channel",
 				left: {
 					username: tg1.username,
@@ -147,8 +189,8 @@ export const appRouter = router({
 	leaderboard: publicProcedure.query(() => {
 		return getLeaderboardSnapshot();
 	}),
-	recentComparisons: publicProcedure.query(() => {
-		return getRecentComparisons();
+	recentComparisons: publicProcedure.query(async () => {
+		return await getRecentComparisons();
 	}),
 });
 export type AppRouter = typeof appRouter;

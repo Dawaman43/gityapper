@@ -1,0 +1,24 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "when": 1771137728649,
+      "tag": "0000_add_comparisons",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "when": 1771137953528,
+      "tag": "0001_add_telegram_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "when": 1771138418862,
+      "tag": "0002_add_commits_count",
+      "breakpoints": true
+    }
+  ]
+}

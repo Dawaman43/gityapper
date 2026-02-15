@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
@@ -38,11 +38,24 @@ function HomeComponent() {
 	const [phoneCode, setPhoneCode] = useState("");
 	const [phoneCodeHash, setPhoneCodeHash] = useState("");
 	const [session, setSession] = useState("");
+	const [deviceId, setDeviceId] = useState("");
 	const [password, setPassword] = useState("");
 	const [channelUsername, setChannelUsername] = useState("");
 	const [githubUsername, setGithubUsername] = useState("");
 	const showLogin = step !== "loggedIn";
 	const leaderboard = leaderboardQuery.data;
+	const ensureDeviceId = () => {
+		let savedDeviceId = localStorage.getItem("tg_device_id");
+		if (!savedDeviceId) {
+			const id =
+				typeof crypto !== "undefined" && "randomUUID" in crypto
+					? crypto.randomUUID()
+					: `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+			localStorage.setItem("tg_device_id", id);
+			savedDeviceId = id;
+		}
+		return savedDeviceId;
+	};
 
 	const fallbackAvatar = (value?: string) =>
 		`data:image/svg+xml;utf8,${encodeURIComponent(
@@ -55,11 +68,28 @@ function HomeComponent() {
 		)}`;
 
 	useEffect(() => {
+		const savedDeviceId = ensureDeviceId();
+		setDeviceId(savedDeviceId);
+
 		const savedSession = localStorage.getItem("tg_session");
 		if (savedSession) {
 			setSession(savedSession);
 			setStep("loggedIn");
+			return;
 		}
+
+		trpcClient.getTelegramSession
+			.query({ deviceId: savedDeviceId })
+			.then((data) => {
+				if (data?.session) {
+					localStorage.setItem("tg_session", data.session);
+					setSession(data.session);
+					setStep("loggedIn");
+				}
+			})
+			.catch(() => {
+				// Ignore restore errors and keep login flow visible
+			});
 	}, []);
 
 	const sendCodeMutation = useMutation({
@@ -78,6 +108,16 @@ function HomeComponent() {
 		onSuccess: (data) => {
 			setSession(data.session);
 			localStorage.setItem("tg_session", data.session);
+			let currentDeviceId = deviceId || ensureDeviceId();
+			if (!deviceId && currentDeviceId) {
+				setDeviceId(currentDeviceId);
+			}
+			if (currentDeviceId) {
+				trpcClient.saveTelegramSession.mutate({
+					deviceId: currentDeviceId,
+					session: data.session,
+				});
+			}
 			setStep("loggedIn");
 			toast.success("Logged in!");
 		},
@@ -149,13 +189,21 @@ function HomeComponent() {
 								</p>
 							</div>
 
-							<div className="grid gap-4 sm:grid-cols-3">
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 								<div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
 									<div className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
 										Signal
 									</div>
 									<div className="mt-2 font-display text-2xl text-foreground">
 										Ship ratio
+									</div>
+								</div>
+								<div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+									<div className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
+										Comparisons
+									</div>
+									<div className="mt-2 font-display text-2xl text-foreground">
+										{leaderboard?.comparisonsCount?.toLocaleString() ?? "0"}
 									</div>
 								</div>
 								<div className="rounded-2xl border border-border bg-card p-4 shadow-sm">

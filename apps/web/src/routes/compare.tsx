@@ -30,6 +30,7 @@ import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { env } from "@gityap/env/web";
 
 const compareSearchSchema = z.object({
 	github: z.string().catch(""),
@@ -93,12 +94,90 @@ function RouteComponent() {
 		setIsCapturing(true);
 
 		try {
-			const canvas = await html2canvas(captureRef.current, {
+			const exportRoot = document.createElement("div");
+			exportRoot.id = "export-root";
+			exportRoot.style.position = "fixed";
+			exportRoot.style.left = "-10000px";
+			exportRoot.style.top = "0";
+			exportRoot.style.width = "1200px";
+			exportRoot.style.padding = "32px";
+			exportRoot.style.background = "#f8fafc";
+			exportRoot.style.color = "#0f172a";
+			exportRoot.style.fontFamily = "Inter, Arial, sans-serif";
+			exportRoot.style.boxSizing = "border-box";
+			exportRoot.style.display = "block";
+			exportRoot.style.setProperty("all", "initial");
+			exportRoot.style.position = "fixed";
+			exportRoot.style.left = "-10000px";
+			exportRoot.style.top = "0";
+			exportRoot.style.width = "1200px";
+			exportRoot.style.padding = "32px";
+			exportRoot.style.background = "#f8fafc";
+			exportRoot.style.color = "#0f172a";
+			exportRoot.style.fontFamily = "Inter, Arial, sans-serif";
+			exportRoot.style.boxSizing = "border-box";
+			exportRoot.style.display = "block";
+
+			const exportStyle = document.createElement("style");
+			exportStyle.textContent = `
+				#export-root, #export-root * {
+					box-sizing: border-box !important;
+					border-color: #e2e8f0 !important;
+					color: #0f172a !important;
+					background-color: transparent !important;
+					box-shadow: none !important;
+					outline: none !important;
+				}
+				#export-root {
+					background-color: #f8fafc !important;
+					color: #0f172a !important;
+				}
+			`;
+			exportRoot.appendChild(exportStyle);
+
+			const ghAvatar =
+				proxyImageUrl(ghData.avatarUrl) || fallbackAvatar(ghData.username);
+			const tgAvatar =
+				proxyImageUrl(tgData.avatarUrl) || fallbackAvatar(tgData.username);
+
+			exportRoot.innerHTML = `
+				<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;padding:24px;">
+					<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+						<div style="font-size:20px;font-weight:700;">Gityap Comparison</div>
+						<div style="font-size:12px;color:#64748b;">${new Date().toLocaleDateString()}</div>
+					</div>
+					<div style="display:grid;grid-template-columns:1fr 120px 1fr;gap:24px;align-items:center;">
+						<div style="border:1px solid #e2e8f0;border-radius:20px;padding:20px;">
+							<img src="${ghAvatar}" crossorigin="anonymous" style="width:72px;height:72px;border-radius:16px;margin-bottom:12px;border:2px solid #e2e8f0;" />
+							<div style="font-weight:700;margin-bottom:12px;">@${ghData.username}</div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px;"><span>Commits</span><span style="color:#0f172a;font-weight:600;">${ghData.commits.toLocaleString()}</span></div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px;"><span>Followers</span><span style="color:#0f172a;font-weight:600;">${ghData.followers.toLocaleString()}</span></div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;"><span>Signal Score</span><span style="color:#0f172a;font-weight:700;">${ghData.score}</span></div>
+						</div>
+						<div style="text-align:center;">
+							<div style="width:64px;height:64px;border-radius:999px;background:#0f172a;color:#f8fafc;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">VS</div>
+							<div style="font-size:12px;color:#64748b;">${comparison.winner === "github" ? "Builders Win" : "Yappers Win"}</div>
+						</div>
+						<div style="border:1px solid #e2e8f0;border-radius:20px;padding:20px;">
+							<img src="${tgAvatar}" crossorigin="anonymous" style="width:72px;height:72px;border-radius:16px;margin-bottom:12px;border:2px solid #e2e8f0;" />
+							<div style="font-weight:700;margin-bottom:12px;">@${tgData.username}</div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px;"><span>Posts</span><span style="color:#0f172a;font-weight:600;">${tgData.posts.toLocaleString()}</span></div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px;"><span>Subscribers</span><span style="color:#0f172a;font-weight:600;">${tgData.participants?.toLocaleString() || "N/A"}</span></div>
+							<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;"><span>Yap Score</span><span style="color:#0f172a;font-weight:700;">${tgData.score}</span></div>
+						</div>
+					</div>
+				</div>
+			`;
+
+			document.body.appendChild(exportRoot);
+			const canvas = await html2canvas(exportRoot, {
 				useCORS: true,
+				allowTaint: true,
 				scale: 2,
-				backgroundColor: "#f8fafc", // slate-50
+				backgroundColor: "#f8fafc",
 				logging: false,
 			});
+			exportRoot.remove();
 
 			canvas.toBlob(async (blob: Blob | null) => {
 				if (!blob) {
@@ -181,6 +260,11 @@ function RouteComponent() {
         </text>
       </svg>`,
 		)}`;
+	const proxyImageUrl = (url?: string) => {
+		if (!url) return "";
+		const base = env.VITE_SERVER_URL?.replace(/\/$/, "") ?? "";
+		return `${base}/image-proxy?url=${encodeURIComponent(url)}`;
+	};
 
 	if (!github || !telegram) {
 		return (
@@ -326,6 +410,8 @@ function RouteComponent() {
 									<img
 										src={ghData.avatarUrl || fallbackAvatar(ghData.username)}
 										alt={ghData.username}
+										data-fallback={fallbackAvatar(ghData.username)}
+										referrerPolicy="no-referrer"
 										className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-sm bg-card"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(ghData.username);
@@ -460,6 +546,8 @@ function RouteComponent() {
 									<img
 										src={tgData.avatarUrl || fallbackAvatar(tgData.username)}
 										alt={tgData.username}
+										data-fallback={fallbackAvatar(tgData.username)}
+										referrerPolicy="no-referrer"
 										className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-sm bg-card"
 										onError={(e) => {
 											e.currentTarget.src = fallbackAvatar(tgData.username);
@@ -536,6 +624,8 @@ function RouteComponent() {
 													<img
 														src={item.left.avatarUrl || fallbackAvatar(item.left.username)}
 														alt={item.left.username}
+														data-fallback={fallbackAvatar(item.left.username)}
+														referrerPolicy="no-referrer"
 														className="inline-block h-10 w-10 rounded-full border-2 border-card object-cover ring-2 ring-muted"
 														onError={(e) => { e.currentTarget.src = fallbackAvatar(item.left.username); }}
 													/>
@@ -551,6 +641,8 @@ function RouteComponent() {
 													<img
 														src={item.right.avatarUrl || fallbackAvatar(item.right.username)}
 														alt={item.right.username}
+														data-fallback={fallbackAvatar(item.right.username)}
+														referrerPolicy="no-referrer"
 														className="inline-block h-10 w-10 rounded-full border-2 border-card object-cover ring-2 ring-muted"
 														onError={(e) => { e.currentTarget.src = fallbackAvatar(item.right.username); }}
 													/>
