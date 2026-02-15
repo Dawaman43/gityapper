@@ -7,7 +7,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -70,14 +70,27 @@ function HomeComponent() {
 							</div>
 						</div>
 
-						<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-sm">
-							<Circle
-								weight="fill"
-								className={healthCheck.data ? "text-primary" : "text-muted"}
-							/>
-							<span>
-								API {healthCheck.data ? "Connected" : "Disconnected"}
-							</span>
+						<div className="flex items-center gap-3">
+							<a
+								href="https://stark.wip.et/project/gityapper-528"
+								target="_blank"
+								rel="noreferrer"
+								className={`${buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})} rounded-full px-3 text-xs border-red-500/40 bg-red-500/10 text-red-600 hover:bg-red-500/15 hover:text-red-600 shadow-sm shadow-red-500/20`}
+							>
+								Star on Stark
+							</a>
+							<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-sm">
+								<Circle
+									weight="fill"
+									className={healthCheck.data ? "text-primary" : "text-muted"}
+								/>
+								<span>
+									API {healthCheck.data ? "Connected" : "Disconnected"}
+								</span>
+							</div>
 						</div>
 					</div>
 
