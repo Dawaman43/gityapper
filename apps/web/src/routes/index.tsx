@@ -1,9 +1,9 @@
+import { env } from "@gityap/env/web";
 import { Circle, MagnifyingGlass } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -15,7 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/utils/trpc";
-import { env } from "@gityap/env/web";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
@@ -174,17 +173,22 @@ function HomeComponent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<div className="mb-6 rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+								<div className="mb-6 rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-muted-foreground text-sm">
 									<div className="font-medium text-foreground">
 										Private commits (optional)
 									</div>
 									<div className="mt-1">
-										Connect GitHub OAuth to include private contributions for your
-										own account. Public-only counts work without it.
+										Connect GitHub OAuth to include private contributions for
+										your own account. Public-only counts work without it.
 									</div>
 									<div className="mt-3">
 										{githubToken ? (
-											<Button type="button" variant="outline" size="sm" disabled>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												disabled
+											>
 												Connected
 											</Button>
 										) : (
@@ -251,75 +255,132 @@ function HomeComponent() {
 				<div className="container mx-auto w-full max-w-6xl px-6 py-16">
 					<div className={`grid gap-8 ${"lg:grid-cols-1"}`}>
 						{leaderboard && (
-							<div className="grid gap-6 md:grid-cols-2">
-								<Card className="rounded-3xl border border-border bg-card shadow-sm">
-									<CardHeader>
-										<CardTitle className="font-display text-foreground text-xl">
-											Top GitHub Shippers
-										</CardTitle>
-										<CardDescription className="text-muted-foreground">
-											Based on recent comparisons.
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{leaderboard.github.length === 0 && (
-											<div className="text-muted-foreground text-sm">
-												No data yet. Run a comparison to populate.
-											</div>
-										)}
-										{leaderboard.github.map((entry, index) => (
-											<div
-												key={entry.username}
-												className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-4 py-3"
-											>
-												<div className="flex items-center gap-3">
-													<div className="text-muted-foreground/60 text-xs">
-														{index + 1}
-													</div>
-													<img
-														src={
-															entry.avatarUrl || fallbackAvatar(entry.username)
-														}
-														alt={`GitHub avatar for ${entry.username}`}
-														className="h-9 w-9 rounded-full border border-border bg-card object-cover"
-														onError={(event) => {
-															event.currentTarget.src = fallbackAvatar(
-																entry.username,
-															);
-														}}
-													/>
-													<div>
-														<div className="font-medium text-foreground">
-															@{entry.username}
+							<div className="space-y-6">
+								<div className="grid gap-6 md:grid-cols-2">
+									<Card className="rounded-3xl border border-border bg-card shadow-sm">
+										<CardHeader>
+											<CardTitle className="font-display text-foreground text-xl">
+												Top GitHub Shippers
+											</CardTitle>
+											<CardDescription className="text-muted-foreground">
+												Based on recent comparisons.
+											</CardDescription>
+										</CardHeader>
+										<CardContent className="max-h-96 space-y-3 overflow-y-auto pr-1">
+											{leaderboard.github.length === 0 && (
+												<div className="text-muted-foreground text-sm">
+													No data yet. Run a comparison to populate.
+												</div>
+											)}
+											{leaderboard.github.map((entry, index) => (
+												<div
+													key={entry.username}
+													className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-4 py-3"
+												>
+													<div className="flex items-center gap-3">
+														<div className="text-muted-foreground/60 text-xs">
+															{index + 1}
 														</div>
-														<div className="text-muted-foreground text-xs">
-															{entry.commits.toLocaleString()} commits
+														<img
+															src={
+																entry.avatarUrl ||
+																fallbackAvatar(entry.username)
+															}
+															alt={`GitHub avatar for ${entry.username}`}
+															className="h-9 w-9 rounded-full border border-border bg-card object-cover"
+															onError={(event) => {
+																event.currentTarget.src = fallbackAvatar(
+																	entry.username,
+																);
+															}}
+														/>
+														<div>
+															<div className="font-medium text-foreground">
+																@{entry.username}
+															</div>
+															<div className="text-muted-foreground text-xs">
+																{entry.commits.toLocaleString()} commits
+															</div>
 														</div>
 													</div>
 												</div>
-											</div>
-										))}
-									</CardContent>
-								</Card>
+											))}
+										</CardContent>
+									</Card>
+
+									<Card className="rounded-3xl border border-border bg-card shadow-sm">
+										<CardHeader>
+											<CardTitle className="font-display text-foreground text-xl">
+												Top Telegram Yappers
+											</CardTitle>
+											<CardDescription className="text-muted-foreground">
+												Based on recent comparisons.
+											</CardDescription>
+										</CardHeader>
+										<CardContent className="max-h-96 space-y-3 overflow-y-auto pr-1">
+											{leaderboard.telegram.length === 0 && (
+												<div className="text-muted-foreground text-sm">
+													No data yet. Run a comparison to populate.
+												</div>
+											)}
+											{leaderboard.telegram.map((entry, index) => (
+												<div
+													key={entry.username}
+													className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-4 py-3"
+												>
+													<div className="flex items-center gap-3">
+														<div className="text-muted-foreground/60 text-xs">
+															{index + 1}
+														</div>
+														<img
+															src={
+																entry.avatarUrl ||
+																fallbackAvatar(entry.username)
+															}
+															alt={`Telegram avatar for ${entry.username}`}
+															className="h-9 w-9 rounded-full border border-border bg-card object-cover"
+															onError={(event) => {
+																event.currentTarget.src = fallbackAvatar(
+																	entry.username,
+																);
+															}}
+														/>
+														<div>
+															<div className="font-medium text-foreground">
+																@{entry.username}
+															</div>
+															<div className="text-muted-foreground text-xs">
+																{entry.posts.toLocaleString()} posts
+															</div>
+														</div>
+													</div>
+												</div>
+											))}
+										</CardContent>
+									</Card>
+								</div>
 
 								<Card className="rounded-3xl border border-border bg-card shadow-sm">
 									<CardHeader>
 										<CardTitle className="font-display text-foreground text-xl">
-											Top Telegram Yappers
+											Top Telegram Channels
 										</CardTitle>
 										<CardDescription className="text-muted-foreground">
-											Based on recent comparisons.
+											All tracked channels ranked by subscribers.
 										</CardDescription>
 									</CardHeader>
-									<CardContent className="space-y-3">
-										{leaderboard.telegram.length === 0 && (
+									<CardContent className="max-h-96 space-y-3 overflow-y-auto pr-1">
+										{(leaderboard.telegramBySubscribers ?? leaderboard.telegram)
+											.length === 0 && (
 											<div className="text-muted-foreground text-sm">
-												No data yet. Run a comparison to populate.
+												No channels yet. Run comparisons to populate this list.
 											</div>
 										)}
-										{leaderboard.telegram.map((entry, index) => (
+										{(
+											leaderboard.telegramBySubscribers ?? leaderboard.telegram
+										).map((entry, index) => (
 											<div
-												key={entry.username}
+												key={`${entry.username}-channel`}
 												className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-4 py-3"
 											>
 												<div className="flex items-center gap-3">
@@ -343,7 +404,8 @@ function HomeComponent() {
 															@{entry.username}
 														</div>
 														<div className="text-muted-foreground text-xs">
-															{entry.posts.toLocaleString()} posts
+															{(entry.subscribers ?? 0).toLocaleString()}{" "}
+															subscribers
 														</div>
 													</div>
 												</div>

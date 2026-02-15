@@ -7,7 +7,6 @@
       "dependencies": {
         "@gityap/env": "workspace:*",
         "@phosphor-icons/react": "^2.1.10",
-        "@vercel/analytics": "^1.6.1",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },

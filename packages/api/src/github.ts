@@ -374,12 +374,32 @@ export function compareUsers(githubUser: GitHubUserData, telegramChannel: any) {
 	};
 }
 
-export function compareChannels(tg1: any, tg2: any) {
+export function compareChannels(
+	tg1: any,
+	tg2: any,
+	options?: {
+		tg1Commits?: number;
+		tg2Commits?: number;
+	},
+) {
 	const tg1Score = calculateTelegramScore(tg1);
 	const tg2Score = calculateTelegramScore(tg2);
 
 	const tg1Posts = tg1.post_count || 0;
 	const tg2Posts = tg2.post_count || 0;
+	const tg1Commits = options?.tg1Commits ?? 0;
+	const tg2Commits = options?.tg2Commits ?? 0;
+	const tg1Activity = tg1Posts + tg1Commits;
+	const tg2Activity = tg2Posts + tg2Commits;
+	const compatibility = Math.max(
+		0,
+		100 -
+			Math.round(
+				(Math.abs(tg1Activity - tg2Activity) /
+					Math.max(tg1Activity, tg2Activity, 1)) *
+					100,
+			),
+	);
 
 	return {
 		telegram1: {
@@ -390,6 +410,7 @@ export function compareChannels(tg1: any, tg2: any) {
 				: "",
 			participants: tg1.participants_count,
 			posts: tg1Posts,
+			commits: tg1Commits,
 			score: tg1Score,
 		},
 		telegram2: {
@@ -400,12 +421,18 @@ export function compareChannels(tg1: any, tg2: any) {
 				: "",
 			participants: tg2.participants_count,
 			posts: tg2Posts,
+			commits: tg2Commits,
 			score: tg2Score,
 		},
 		comparison: {
 			tg1Higher: tg1Score > tg2Score,
 			score: Math.abs(tg1Score - tg2Score),
 			winner: tg1Score > tg2Score ? "telegram1" : "telegram2",
+			compatibility,
+			activity: {
+				telegram1: tg1Activity,
+				telegram2: tg2Activity,
+			},
 		},
 	};
 }
