@@ -99,9 +99,9 @@ function RootComponent() {
 						<Outlet />
 					</main>
 					<footer className="py-6 text-center font-medium text-[10px] text-muted-foreground/60 uppercase tracking-wider">
-						made with{" "}
+						Made with{" "}
 						<Heart weight="fill" className="inline h-3 w-3 text-red-500/70" />{" "}
-						with dawit
+						by Dawit
 					</footer>
 				</div>
 				<Toaster richColors />
