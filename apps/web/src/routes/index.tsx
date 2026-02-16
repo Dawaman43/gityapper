@@ -103,8 +103,12 @@ function HomeComponent() {
 								className={`${buttonVariants({
 									variant: "outline",
 									size: "sm",
-								})} rounded-full px-3 text-xs shadow-sm`}
+								})} rounded-full px-3 text-slate-50 text-xs shadow-sm hover:text-slate-50`}
 							>
+								<span
+									aria-hidden="true"
+									className="h-2 w-2 rounded-full bg-red-500/80"
+								/>
 								Star on Stark
 							</a>
 							<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-muted-foreground text-sm shadow-sm">
