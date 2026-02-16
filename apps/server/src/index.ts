@@ -9,6 +9,28 @@ import { logger } from "hono/logger";
 
 const app = new Hono();
 const GITHUB_OAUTH_SCOPE = "read:user repo read:org";
+const DEV_LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
+function normalizeOrigin(rawOrigin: string) {
+	try {
+		return new URL(rawOrigin).origin;
+	} catch {
+		return null;
+	}
+}
+
+function parseCorsOrigins(rawValue: string) {
+	const normalizedOrigins = rawValue
+		.split(",")
+		.map((origin) => origin.trim())
+		.filter((origin) => origin.length > 0)
+		.map((origin) => normalizeOrigin(origin))
+		.filter((origin): origin is string => origin !== null);
+	return [...new Set(normalizedOrigins)];
+}
+
+const configuredCorsOrigins = parseCorsOrigins(env.CORS_ORIGIN);
+const defaultCorsOrigin = configuredCorsOrigins[0] ?? "";
 
 function buildOAuthState(secret: string) {
 	const payload = JSON.stringify({ ts: Date.now() });
@@ -54,7 +76,25 @@ app.use(logger());
 app.use(
 	"/*",
 	cors({
-		origin: env.CORS_ORIGIN,
+		origin: (origin) => {
+			if (!origin) {
+				return defaultCorsOrigin;
+			}
+			const normalizedOrigin = normalizeOrigin(origin);
+			if (!normalizedOrigin) {
+				return "";
+			}
+			if (configuredCorsOrigins.includes(normalizedOrigin)) {
+				return normalizedOrigin;
+			}
+			if (
+				env.NODE_ENV !== "production" &&
+				DEV_LOCALHOST_ORIGIN.test(normalizedOrigin)
+			) {
+				return normalizedOrigin;
+			}
+			return "";
+		},
 		allowMethods: ["GET", "POST", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		credentials: false,
@@ -128,7 +168,7 @@ app.get("/auth/github/callback", async (c) => {
 		return c.text(tokenData.error_description ?? "Missing access token.", 502);
 	}
 
-	const webOrigin = new URL(env.CORS_ORIGIN).origin;
+	const webOrigin = new URL(defaultCorsOrigin).origin;
 	const html = `<!doctype html>
 <html lang="en">
   <head>

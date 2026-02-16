@@ -95,29 +95,29 @@ function HomeComponent() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <a
-                href="https://stark.wip.et/project/gityapper-528"
-                target="_blank"
-                rel="noreferrer"
-                className={`${buttonVariants({
-                  variant: 'outline',
-                  size: 'sm',
-                })} rounded-full border-red-500/40 bg-red-500/10 px-3 text-red-600 text-xs shadow-red-500/20 shadow-sm hover:bg-red-500/15 hover:text-red-600`}
-              >
-                Star on Stark
-              </a>
-              <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-muted-foreground text-sm shadow-sm">
-                <Circle
-                  weight="fill"
-                  className={healthCheck.data ? 'text-primary' : 'text-muted'}
-                />
-                <span>
-                  API {healthCheck.data ? 'Connected' : 'Disconnected'}
-                </span>
-              </div>
-            </div>
-          </div>
+						<div className="flex items-center gap-3">
+							<a
+								href="https://stark.wip.et/project/gityapper-528"
+								target="_blank"
+								rel="noreferrer"
+								className={`${buttonVariants({
+									variant: "outline",
+									size: "sm",
+								})} rounded-full px-3 text-xs shadow-sm`}
+							>
+								Star on Stark
+							</a>
+							<div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-muted-foreground text-sm shadow-sm">
+								<Circle
+									weight="fill"
+									className={healthCheck.data ? "text-primary" : "text-muted"}
+								/>
+								<span>
+									API {healthCheck.data ? "Connected" : "Disconnected"}
+								</span>
+							</div>
+						</div>
+					</div>
 
           <div className="mt-10 space-y-10">
             <div className="space-y-6">

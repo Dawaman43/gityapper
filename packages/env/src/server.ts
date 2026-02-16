@@ -5,7 +5,22 @@ import { z } from "zod";
 export const env = createEnv({
 	server: {
 		DATABASE_URL: z.string().min(1),
-		CORS_ORIGIN: z.url(),
+		CORS_ORIGIN: z
+			.string()
+			.min(1)
+			.refine(
+				(value) => {
+					const origins = value
+						.split(",")
+						.map((origin) => origin.trim())
+						.filter((origin) => origin.length > 0);
+					return origins.length > 0 && origins.every((origin) => URL.canParse(origin));
+				},
+				{
+					message:
+						"CORS_ORIGIN must be a URL or comma-separated list of URLs",
+				},
+			),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),
